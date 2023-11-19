@@ -1,0 +1,12 @@
+name: Find-Actuator
+rules:
+  - method: GET
+    poc: 
+        - /actuator
+    body:
+        
+    check: '"templated":false'
+detail:
+  author: LittleBear4   
+  links: 
+    - https://xxxxxx
