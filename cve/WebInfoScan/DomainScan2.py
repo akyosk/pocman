@@ -1,0 +1,81 @@
+#! /usr/bin/python3
+# -*- coding: utf-8 -*-
+import urllib3
+import requests
+from concurrent.futures import ThreadPoolExecutor, wait, as_completed
+from bs4 import BeautifulSoup
+from libs.public.outprint import OutPrintInfo
+from libs.public.reqset import ReqSet
+from rich import print as rprint
+from requests import RequestException
+# from rich.spinner import Spinner
+from rich.progress import Progress
+# from rich.live import Live
+
+
+urllib3.disable_warnings()
+
+class ScanDomain:
+    def __init__(self):
+        self.__url = None
+
+    def __domain_scan(self, url):
+        try:
+            response = requests.get(url="https://" + url, headers=self.header, verify=self.verify,proxies=self.proxy)
+            response.encoding = response.apparent_encoding
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                title = soup.title.string
+                contents = len(response.text)
+                rprint(f"[[blue]Domain[/blue]]:https://{url}\t[[blue]Title[/blue]]:{str(title.strip())}\t[[blue]响应长度[/blue]]{str(contents)}")
+        except RequestException as e:
+            pass
+
+
+
+    def main(self, results):
+        if '://' in results[0]:
+            OutPrintInfo("Subdomain", '请输入不包含服务头的域名')
+            return
+        else:
+            self.__url = results[0].strip('/ ')
+        OutPrintInfo("Subdomain", f"开始枚举[b bright_red]{self.__url}[/b bright_red]子域名......")
+        threads = results[1]
+        head = results[2]
+        self.verify = results[3]
+        proxy = results[4]
+        req = ReqSet(header=head,proxy=proxy)
+        self.header = req["header"]
+        self.proxy = req["proxy"]
+        url_list = []
+
+        with open('./dict/subdomain.txt', encoding="utf-8") as f:
+            for i in f:
+                if i:
+                    url_list.append(i.strip() + '.' + self.__url)
+        # spinner = Spinner("earth")
+        # with Live(auto_refresh=False) as live:
+        #     with ThreadPoolExecutor(int(threads)) as pool:
+        #         futures = [pool.submit(self.__domain_scan, res_url) for res_url in url_list]
+        #         for future in futures:
+        #             while not future.done():
+        #                 live.update(spinner)
+        #                 live.refresh()
+        #     # pool.shutdown()
+        #     wait(futures)
+        with Progress(transient=True) as progress:
+            tasks = progress.add_task("[b cyan]子域名枚举中...",total=len(url_list))
+            with ThreadPoolExecutor(int(threads)) as pool:
+                futures = [pool.submit(self.__domain_scan, res_url) for res_url in url_list]
+                for future in as_completed(futures):
+                    future.result()
+                    progress.update(tasks,advance=1)
+                # for future in futures:
+                #     while not future.done():
+                #         live.update(spinner)
+                #         live.refresh()
+            # pool.shutdown()
+            wait(futures)
+
+        OutPrintInfo("Subdomain", "子域名枚举结束")
+
