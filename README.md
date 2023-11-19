@@ -12,7 +12,11 @@
 **工具着重信息收集方面，侧重于POC收集**
 
 ## 👽 使用
-**pip3 install -r requirements.txt**
+~~~text
+pip3 install -r requirements.txt
+python3 run.py
+~~~
+
 **直接运行run.py即可使用，没有多余参数要求**
 ![image-20231120003209190](./image/image-20231120003209190.png)
 
