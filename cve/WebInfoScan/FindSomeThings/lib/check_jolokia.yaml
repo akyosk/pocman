@@ -1,0 +1,14 @@
+name: Find-jolokia
+rules:
+  - method: GET
+    poc: 
+        - /jolokia/list
+        - /jolokia
+        - /actuator/jolokia
+    body:
+        
+    check: 'reloadByURL'
+detail:
+  author: LittleBear4   
+  links: 
+    - https://xxxxxx

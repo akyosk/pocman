@@ -1,0 +1,12 @@
+name: Find-h2-console
+rules:
+  - method: GET
+    poc: 
+        - /h2-console/
+    body:
+        
+    check: 'H2 Console'
+detail:
+  author: LittleBear4   
+  links: 
+    - https://xxxxxx
