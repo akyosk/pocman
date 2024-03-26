@@ -319,16 +319,12 @@ from cve.Ueditor.Ueditor_Upload_Dir import Ueditor_Upload_Dir_Scan
 
 
 modules = [
-    {"name": "Vuls", "description": "快速打点工具[b bright_red]POC-bomber[/b bright_red]移植", "params": {"url": url},'poc': POC_bomber_Scan},
-    {"name": "Vuls", "description": "快速打点工具[b bright_red]Vulcat[/b bright_red]移植", "params": {"url": url},'poc': Vulcat_Scan},
-    {"name": "Vuls", "description": "快速打点工具[b bright_red]Vulmap[/b bright_red]移植", "params": {"url": url},'poc': Vulmap_Scan},
 
     {"name": "Vuls", "description": "快速打点工具[b bright_red]VulnX[/b bright_red]移植", "params": {"url": url},'poc': VulnX_Scan},
     {"name": "Vuls", "description": "快速打点工具[b bright_red]XSSCon[/b bright_red]移植", "params": {"url": url},'poc': XSSCon_Scan},
 
 
     {"name": "Vuls", "description": "[b bright_red]sqlmap[/b bright_red]移植", "params": {"sqlmap": "输入需要执行的语句,如: -u 'http://google.com' --dbs/-r sqltest.txt","Tips":"url需要引号包裹,默认--batch,默认输出result目录(写死),-r时文件放置run.py同目录"},'poc': SqlMap_Run_Scan},
-    {"name": "Vuls", "description": "[b bright_red]GHR[/b bright_red]漏洞扫描工具移植", "params": {"url": url,"proxy":proxy,"update":False,"nodir":True},'poc': GHR_Scan},
     {"name": "Web", "description": "通过domain枚举子域名([b bright_red]短时间[/b bright_red])", "params": {"domain": domain,"ssl": ssl,},'poc': DomainScanInfo},
     {"name": "Web", "description": "通过domain枚举子域名([b bright_red]长时间[/b bright_red])", "params": {"domain": domain,"threads": threads,"header": ua,"ssl": ssl,"proxy": proxy},'poc': ScanDomain},
     {"name": "Web", "description": "通过url枚举[b bright_red]dir/web路径[/b bright_red]", "params": {"url": url,"threads": threads,"header": ua,"ssl": ssl,"proxy": proxy},'poc': Dirsearch},
@@ -345,20 +341,17 @@ modules = [
     {"name": "Web", "description": "[b bright_red]FindSomeThing[/b bright_red]工具移植", "params": {"url": url},'poc': Find_Some_Thing},
 
     {"name": "Web", "description": "[b bright_red]Jjjjjjjjjjjjjs[/b bright_red]工具移植,爬网站JS文件,自动fuzz api接口,指定api接口", "params": {"url": url},'poc': jjjjjjjjjjjjjs_Scan},
-
-    {"name": "Web", "description": "[b bright_red]Dirpro[/b bright_red]工具移植,目录扫描器,自动使用随机的User-Agent", "params": {"url": url,"threads":threads,"proxy":proxy},'poc': Dirpro_Scan},
     {"name": "Web", "description": "通过[b bright_red]Shodan[/b bright_red]搜索引擎批量搜索/导出域名信息", "params": {"query": "hostname:baidu.com/product:nginx","pass": 10,"Tips":"pass为返回错误次数,当次数达到设定的pass次后自动退出"},'poc': ShodanWork},
     {"name": "Web", "description": "通过[b bright_red]Censys[/b bright_red]搜索域名相关的IP信息", "params": {"domain": domain,"cookie":censys_api},'poc': CensysDomainInfo},
     {"name": "Web", "description": "通过[b bright_red]Censys[/b bright_red]搜索IP及端口信息", "params": {"domain": domain,"cookie":censys_api},'poc': CensysInfo},
     {"name": "Web", "description": "GitHack工具移植,通过网站泄漏的[b bright_red]Git[/b bright_red]文件信息下载网站源码信息", "params": {"url": url},'poc': GitHackScan},
     {"name": "Web", "description": "通过多方平台收集[b bright_red]Domain/IP[/b bright_red]信息([b red]强烈推荐[/b red])", "params": {"domain": domain,"output":False,"max":5},'poc': DomainAll},
-    {"name": "Web", "description": "通过[b bright_red]Knock[/b bright_red]收集域名信息", "params": {"domain": domain,"threads":threads},'poc': Knock},
     {"name": "Web", "description": "FOFA[b bright_red]无需会员[/b bright_red]即可爬取多页脚本", "params": {"Tips": "直接run"},'poc': Fofacrocs},
     {"name": "Web", "description": "针对Webpack等前端打包工具所构造的网站进行js/api快速、高效安全检测[b bright_red]Packer-Fuzzer[/b bright_red]工具移植", "params": {"url": url,"proxy":proxy},'poc': Packer_Fuzzer_Run_Scan},
     {"name": "Web", "description": "后台信息收集任务[b bright_red]okadminfinder[/b bright_red]工具移植", "params": {"url": url,"proxy":proxy},'poc': okadminfinder_Run_Scan},
     {"name": "Web", "description": "提供漏洞详细信息和相关验证(PoC)的工具[b bright_red]SploitScan[/b bright_red]工具移植([b red]一款不错的辅助工具[/b red])", "params": {"cve": "CVE-2020-8888","Tips":"查询多个CVE时用空格分割"},'poc': SploitScan_Run},
     {"name": "Web", "description": "利用工具从Cloudflare中发现源IP[b bright_red]CloudFail[/b bright_red]工具移植", "params": {"url": url},'poc': CloudFail_Run_Scan},
-    {"name": "Web", "description": "查找Cloudflare保护的网站的真实IP地址[b bright_red]CloakQuest3r[/b bright_red]工具移植","params": {"url": url}, 'poc': CloakQuest3r_Run_Scan},
+
 
 
     {"name": "WordPress", "description": "[b bright_red]WpRest[/b bright_red]工具移植,检测Wordpress网站信息", "params": {"url": url,"ssl": ssl,"header":ua,"proxy":proxy},'poc': WpRestScan},
