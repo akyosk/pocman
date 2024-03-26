@@ -24,7 +24,6 @@ from cve.WebInfoScan.DomainAllScan import DomainAll
 from cve.WebInfoScan.CensysIp import CensysInfo
 from cve.WebInfoScan.CensysDomain import CensysDomainInfo
 from cve.WebInfoScan.GitHack_master.GitHack import GitHackScan
-from cve.WebInfoScan.knock.knockRun import Knock
 from cve.WebInfoScan.FofaCrocs import Fofacrocs
 from cve.WebInfoScan.CloakQuest3r.CloakQuest3r_Run import CloakQuest3r_Run_Scan
 from cve.WebInfoScan.Packer_Fuzzer.Packer_Fuzzer_Run import Packer_Fuzzer_Run_Scan
