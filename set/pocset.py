@@ -1,13 +1,9 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 from set.config import ua,ip,domain,url,port,cmd,threads,cookie,ssl,rhost,rport,lhost,lport,proxy,file,timeout,censys_api,shodan_api,ceye_dns,ceye_api # 引入配置文件
-from cve.VulsScan.POC_bomber.POC_bomber_Run import POC_bomber_Scan
-from cve.VulsScan.vulmap.Vulmap_Run import Vulmap_Scan
-from cve.VulsScan.vulcat.Vulcat_Run import Vulcat_Scan
 from cve.VulsScan.VulnX.VulnX_Run import VulnX_Scan
 from cve.VulsScan.XSSCon.XSSCon_Run import XSSCon_Scan
 from cve.VulsScan.sqlmap.SqlMap_Run import SqlMap_Run_Scan
-from cve.VulsScan.GHR.GHR_Run import GHR_Scan
 from cve.WebInfoScan.DomainScan import DomainScanInfo
 from cve.WebInfoScan.DomainScan2 import ScanDomain
 from cve.WebInfoScan.Crt import CERTScan
