@@ -42,7 +42,7 @@ class Ueditor_Upload_Dir_Scan:
             req = ReqSet(header=header)
             self.headers = req["header"]
         if not self.batch:
-            OutPrintInfo("Ueditor", '开始检测Fckeditor上传点...')
+            OutPrintInfo("Ueditor", '开始检测Ueditor上传点...')
         dir = [
             "/ueditor/index.html",
             "/ueditor/asp/controller.asp?action=uploadimage",
@@ -59,4 +59,4 @@ class Ueditor_Upload_Dir_Scan:
         for i in dir:
             self.get_url(url,i)
         if not self.batch:
-            OutPrintInfo("Ueditor", 'Fckeditor上传点检测结束')
+            OutPrintInfo("Ueditor", 'Ueditor上传点检测结束')
