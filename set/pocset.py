@@ -19,7 +19,6 @@ from cve.WebInfoScan.SecurityCheck import SecurityCheckScan
 from cve.WebInfoScan.JScanner import JscannerMaster
 from cve.WebInfoScan.FindSomeThings.main.console import Find_Some_Thing
 from cve.WebInfoScan.jjjjjjjjjjjjjs.jjjjjjjjjjjjjs_Run import jjjjjjjjjjjjjs_Scan
-from cve.WebInfoScan.dirpro.Dirpro_Run import Dirpro_Scan
 from cve.WebInfoScan.Shodan import ShodanWork
 from cve.WebInfoScan.DomainAllScan import DomainAll
 from cve.WebInfoScan.CensysIp import CensysInfo
