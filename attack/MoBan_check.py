@@ -17,8 +17,8 @@ class MoBanPoc:
         try:
             req = requests.get(url, headers=self.__headers, proxies=self.__proxies, verify=self.__ssl,
                                timeout=self.__timeout)
-            if "SQL syntax" in req.text or "PostgreSQL" in req.text or "SQL Server" in req.text or "Oracle error" in req.text or "DB2 SQL error" in req.text or "SQLite" in req.text or "XPATH" in req.text:
-                return True, url, "SQL Inject", req.request.headers
+            if "603729" in req.text or "603,729" in req.text:
+                return True, url, "MB Inject", req.request.headers
         except Exception:
             pass
 
@@ -28,8 +28,8 @@ class MoBanPoc:
         try:
             req = requests.post(baseurl, headers=self.__headers, proxies=self.__proxies, verify=self.__ssl,
                                 timeout=self.__timeout, data=data)
-            if "SQL syntax" in req.text or "PostgreSQL" in req.text or "SQL Server" in req.text or "Oracle error" in req.text or "DB2 SQL error" in req.text or "SQLite" in req.text or "XPATH" in req.text:
-                return True, url, "SQL POST Inject", req.request.headers, req.request.body
+            if "603729" in req.text or "603,729" in req.text:
+                return True, url, "MB POST Inject", req.request.headers, req.request.body
         except Exception:
             pass
 
