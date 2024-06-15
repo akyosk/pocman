@@ -1,0 +1,79 @@
+version: "0.0.03"
+# 脚本请求设置
+default_settings:
+  ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+  domain: "google.com"
+  ip: "0.0.0.0"
+  url: "https://www.google.com"
+  port: "8080"
+  cmd: "whoami"
+  threads: 30
+  timeout: 5
+  cookie: null
+  # verify验证
+  ssl: false
+
+rebound_settings:
+  # 默认监听设置
+  rhost: "0.0.0.0"
+  lhost: "0.0.0.0"
+  rport: "8080"
+  lport: "9527"
+
+# rich 默认开关
+rich_flag: false
+# yaml poc 文件地址
+yaml_pocs_dir: "yml"
+
+
+file_settings:
+  # poc默认读取文件地址，建议不修改
+  file: "etc/passwd"
+  # 批量(batch)模式下默认读取文件地址
+  batch_work_file: "batch/url.txt"
+
+proxy_settings:
+  proxy: null
+  # proxy: "http://198.18.0.3:1082" "198.18.0.3:1082"
+
+api_keys:
+  # ceye-dns
+  ceye_dns: ""
+  ceye_api: ""
+  # censys-api 免费注册
+  censys:
+    api: ""
+    secret: ""
+    auth: "Basic NWUyMDM2YzItZmIyMS00NGMwLWI5N2MtZTBmNjQ0ZGZmODFiOmExRkxabUVlWHYzR1pocVpQNHVsMDdGaXNxM2ZqbFRR"
+  # shodan
+  shodan_api: ""
+  # virustotal-api 免费注册
+  virustotal_api: ""
+  # dnsdumpster-csrftoken 请求包里
+  dnsdump_csrftoken: "uxXaL6TLzz2H7LSTcufBjR60ahvqBHJiitZoXqZWNNCVfk6sxySdNUrjUctMEdZU"
+  # fofa
+  fofa:
+    key: ""
+    email: ""
+  # hunter
+  yt_key: ""
+  # viewdns 免费注册，每月250次
+  viewdns_key: ""
+  # fullhunt-api 每月100 https://fullhunt.io/
+  fullhunt_api: ""
+  # zoomeye
+  zoomeye_key: ""
+  # quake
+  quake_key: ""
+  # https://app.binaryedge.io/services/query
+  binaryedge_key: ""
+  # whoisxmlapi.com 每月500条
+  whoisxmlapi_key: ""
+# securitytrails.com接口网站的密钥 每个50次，免费注册,可注册多个，当检测无使用次数时自动遍历替换
+securitytrails_keys:
+  api_list:
+    - ""
+# cmd5
+cmd5:
+  key: ""
+  mail: ""

