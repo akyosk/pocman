@@ -32,6 +32,8 @@ zoomeye_key = config_yaml_values['zoomeye_key']
 quake_key = config_yaml_values['quake_key']
 binaryedge_key = config_yaml_values['binaryedge_key']
 whoisxmlapi_key = config_yaml_values['whoisxmlapi_key']
+hunter_how_key = config_yaml_values['hunter_how_key']
+daydaymap_key = config_yaml_values['daydaymap_key']
 class CERTScan:
     def get_rss_for_domain(self, domain):
         # print(domain)
@@ -1196,6 +1198,70 @@ class Whoisxmlapi:
         except Exception:
             OutPrintInfo("Whoisxmlapi", "[b yellow]请求Whoisxmlapi查询时出错 :(")
             return None
+
+class HunterHow:
+    def main(self,domain):
+        domain_list = []
+        ip_list = []
+        query = f'domain="{domain}"'
+        encoded_query = base64.urlsafe_b64encode(query.encode("utf-8")).decode('ascii')
+        if not hunter_how_key:
+            OutPrintInfo("HunterHow", "[b yellow]未检测到hunter-how-Key不执行相关操作 :(")
+            return None
+        i = f"https://api.hunter.how/search?api-key={hunter_how_key}&query={encoded_query}&page=1&page_size=100&start_time=2024-01-01&end_time=2024-12-01"
+        try:
+            req = requests.get(i)
+            if req.status_code == 200:
+                json_str = json.loads(req.text)
+                if json_str.get('code') == 200:
+                    for res in json_str.get('data')['list']:
+                        if res['domain'] not in domain_list:
+                            domain_list.append(res['domain'])
+                        if res['ip'] not in ip_list:
+                            ip_list.append(res['ip'])
+                    OutPrintInfo("HunterHow",
+                                 f"任务执行完成HunterHow共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名,[b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
+                    return domain_list, ip_list
+
+            OutPrintInfo("HunterHow", "[b yellow]请求HunterHow查询时出错 :(")
+
+        except Exception:
+            OutPrintInfo("HunterHow", "[b yellow]请求HunterHow查询时出错 :(")
+            return None,None
+class DayDayMap:
+    def main(self,domain):
+        domain_list, ip_list = [],[]
+        if not daydaymap_key:
+            OutPrintInfo("DayDayMap", "[b yellow]未检测到DayDayMap-Key不执行相关操作 :(")
+            return None
+        headers = {
+            'api-key': daydaymap_key
+        }
+        query = f'domain="{domain}"'
+        encoded_query = base64.urlsafe_b64encode(query.encode("utf-8")).decode('ascii')
+        data = {
+            "page": 1,
+            "page_size": 100,
+            "keyword": encoded_query
+        }
+        try:
+            response = requests.post('https://www.daydaymap.com/api/v1/raymap/search/all', headers=headers, json=data,
+                                     verify=False)
+            if response.status_code == 200:
+                json_str = json.loads(response.text)
+                if json_str.get('code') == 200:
+                    for res in json_str.get('data')['list']:
+                        if res['domain'] not in domain_list:
+                            domain_list.append(res['domain'])
+                        if res['ip'] not in ip_list:
+                            ip_list.append(res['ip'])
+                    OutPrintInfo("DayDayMap",
+                                 f"任务执行完成DayDayMap共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名,[b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
+                    return domain_list, ip_list
+            OutPrintInfo("DayDayMap", "[b yellow]请求DayDayMap查询时出错 :(")
+        except Exception:
+            OutPrintInfo("DayDayMap", "[b yellow]请求DayDayMap查询时出错 :(")
+            return None, None
 class DomainAll:
     def check_domain(self,domain):
         def run(domain):
@@ -1452,6 +1518,34 @@ class DomainAll:
                     res.append(i)
         OutPrintInfo("ZoomEye", "ZoomEye搜索域名IP信息结束")
         OutPrintInfo("Working", "[b bright_red]~" * 60)
+
+        OutPrintInfo("HunterHow", "开始通过HunterHow搜索域名及IP信息...")
+        hunterhow_domain, hunterhow_ip = HunterHow().main(domain)
+        if hunterhow_ip:
+            for i in hunterhow_ip:
+                if i not in ip_res:
+                    ip_res.append(i)
+        if hunterhow_domain:
+            for i in hunterhow_domain:
+                if i not in res:
+                    res.append(i)
+        OutPrintInfo("HunterHow", "HunterHow搜索域名IP信息结束")
+        OutPrintInfo("Working", "[b bright_red]~" * 60)
+
+
+        OutPrintInfo("DayDayMap", "开始通过DayDayMap搜索域名及IP信息...")
+        daydaymap_domain, daydaymap_ip = DayDayMap().main(domain)
+        if daydaymap_ip:
+            for i in daydaymap_ip:
+                if i not in ip_res:
+                    ip_res.append(i)
+        if daydaymap_domain:
+            for i in daydaymap_domain:
+                if i not in res:
+                    res.append(i)
+        OutPrintInfo("DayDayMap", "DayDayMap搜索域名IP信息结束")
+        OutPrintInfo("Working", "[b bright_red]~" * 60)
+
 
         OutPrintInfo("Netlas", "开始通过Netlas搜索域名IP信息...")
         netlas_domain,netlas_ip = Netlas().main(domain)

@@ -1,4 +1,4 @@
-version: "0.0.03"
+version: "0.0.3.(base)"
 # 脚本请求设置
 default_settings:
   ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -69,6 +69,10 @@ api_keys:
   binaryedge_key: ""
   # whoisxmlapi.com 每月500条
   whoisxmlapi_key: ""
+  # hunter.how 每天500 注意不是hunter，网站地址hunter.how
+  hunter_how_key: ""
+  # DayDayMap
+  daydaymap_key: ""
 # securitytrails.com接口网站的密钥 每个50次，免费注册,可注册多个，当检测无使用次数时自动遍历替换
 securitytrails_keys:
   api_list:

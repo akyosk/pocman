@@ -57,7 +57,7 @@ class Cve_2021_21315:
         headers = target["header"]
         self.verify = target["ssl"]
         proxy = target["proxy"]
-        self.headers, self.proxy = ReqSet(header=header, proxy=proxy, bwork=self.batch)
+        self.headers, self.proxy = ReqSet(header=headers, proxy=proxy, bwork=self.batch)
         if not self.batch:
             OutPrintInfo("Node-JS", '开始检测Node.js CVE-2021-21315漏洞......')
         if self.poc1(url):

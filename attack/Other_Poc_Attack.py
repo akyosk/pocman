@@ -1,36 +1,17 @@
 #!/user/bin/env python3
 # -*- coding: utf-8 -*-
 import requests,urllib3
-from cve.Nginx.Nginx_File_Read import Nginx_File_Read_Scan
-from cve.Jquery.JqueryDirRead import JqueryDirReadScan
-from cve.Log.Logs import LogScan
-from cve.NodeJs.CVE_2017_14849 import Cve_2017_14849
-from cve.NodeJs.CVE_2021_21315 import Cve_2021_21315
-from cve.Ruby.CVE_2018_3760 import Cve_2018_3760
-from cve.Aiohttp.CVE_2024_23334 import Cve_2024_23334
-from cve.Ruby.CVE_2019_5418 import Cve_2019_5418
-from cve.Spring.SpringDump import SpringDumpScan
-from cve.WebInfoScan.ZhongJianJian import ZhongJianJianScan
-from cve.Apache.Log4j_Check import Log4j_Check_Run
-from cve.Shiro.Shiro_Check import Shiro_Check_Run
 from attack.CheckCms import Check_Cms
-from cve.IIS.IISPut import IISPutScan
-from cve.FastJson.FastJsonCheck import FastJsonCheckScan
-from cve.Mini_Httpd.CVE_2018_18778 import Cve_2018_18778
-from cve.ZOHO.CVE_2023_35854 import Cve_2023_35854
-from rich.progress import Progress
-from set.pocset import modules
-from pub.com.outprint import OutPrintInfoSuc,OutPrintInfo,OutPrintInfoR
-from concurrent.futures import ThreadPoolExecutor,as_completed,wait
 from attack.SQL_Injection import SqlPoc
 from attack.XSS_check import XssPoc
 from attack.File_Read import File_ReadPoc
 from attack.SSRF_check import SSRFPoc
 from attack.MoBan_check import MoBanPoc
 from attack.XXE import XXEPoc
-from cve.Kindeditor.Kindeditor_Upload_Dir import Kindeditor_Upload_Dir_Scan
-from cve.Fckeditor.Fckeditor_Upload_Dir import Fckeditor_Upload_Dir_Scan
-from cve.Ueditor.Ueditor_Upload_Dir import Ueditor_Upload_Dir_Scan
+from rich.progress import Progress
+from set.pocset import modules
+from pub.com.outprint import OutPrintInfoSuc,OutPrintInfo,OutPrintInfoR
+from concurrent.futures import ThreadPoolExecutor,as_completed,wait
 urllib3.disable_warnings()
 class Other_Poc_Attack_Run():
     def __error_check(self,target):
@@ -50,6 +31,25 @@ class Other_Poc_Attack_Run():
         except Exception:
             pass
     def __poc_list(self,target):
+        from cve.Nginx.Nginx_File_Read import Nginx_File_Read_Scan
+        from cve.Jquery.JqueryDirRead import JqueryDirReadScan
+        from cve.NodeJs.CVE_2017_14849 import Cve_2017_14849
+        from cve.NodeJs.CVE_2021_21315 import Cve_2021_21315
+        from cve.Ruby.CVE_2018_3760 import Cve_2018_3760
+        from cve.Aiohttp.CVE_2024_23334 import Cve_2024_23334
+        from cve.Ruby.CVE_2019_5418 import Cve_2019_5418
+        from cve.Spring.SpringDump import SpringDumpScan
+        from cve.Apache.Log4j_Check import Log4j_Check_Run
+        from cve.Shiro.Shiro_Check import Shiro_Check_Run
+        from cve.IIS.IISPut import IISPutScan
+        from cve.FastJson.FastJsonCheck import FastJsonCheckScan
+        from cve.Mini_Httpd.CVE_2018_18778 import Cve_2018_18778
+        from cve.ZOHO.CVE_2023_35854 import Cve_2023_35854
+        from cve.Kindeditor.Kindeditor_Upload_Dir import Kindeditor_Upload_Dir_Scan
+        from cve.Fckeditor.Fckeditor_Upload_Dir import Fckeditor_Upload_Dir_Scan
+        from cve.Ueditor.Ueditor_Upload_Dir import Ueditor_Upload_Dir_Scan
+        from cve.SolarWinds.SolarWinds_File_Read import SolarWinds_File_Read_Scan
+        from cve.PHP.CVE_2024_4577 import Cve_2024_4577
         poc_list = [
             Nginx_File_Read_Scan,
             JqueryDirReadScan,
@@ -68,6 +68,8 @@ class Other_Poc_Attack_Run():
             Kindeditor_Upload_Dir_Scan,
             Fckeditor_Upload_Dir_Scan,
             Ueditor_Upload_Dir_Scan,
+            SolarWinds_File_Read_Scan,
+            Cve_2024_4577
         ]
 
         tasks = self.__progress.add_task("[b green]常归漏洞扫描...",total=len(poc_list))
@@ -81,6 +83,8 @@ class Other_Poc_Attack_Run():
         wait(futures)
 
     def _work_run(self,target):
+        from cve.Log.Logs import LogScan
+        from cve.WebInfoScan.ZhongJianJian import ZhongJianJianScan
         ZhongJianJianScan().main(target)
         LogScan().main(target)
         _list = [

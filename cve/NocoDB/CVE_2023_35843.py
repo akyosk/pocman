@@ -3,6 +3,7 @@
 from pub.com.outprint import OutPrintInfo,OutPrintInfoSuc
 from pub.com.reqset import ReqSet
 import requests,urllib3
+from pub.com.output import OutPutFile
 urllib3.disable_warnings()
 
 class Cve_2023_35843:
@@ -18,8 +19,7 @@ class Cve_2023_35843:
                 OutPrintInfoSuc("NocoDB", f"存在NocoDB任意文件读取漏洞 {url2}")
 
                 if self.batch:
-                    with open("./result/nocodb_2023_35843.txt","a") as w:
-                        w.write(f"{url2}\n")
+                    OutPutFile("NocoDB",f"存在NocoDB任意文件读取漏洞 {url2}")
                 return True
             else:
                 if not self.batch:

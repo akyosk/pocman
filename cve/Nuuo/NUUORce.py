@@ -3,6 +3,7 @@
 from pub.com.outprint import OutPrintInfo,OutPrintInfoSuc
 from pub.com.reqset import ReqSet
 from rich.prompt import Prompt
+from pub.com.output import OutPutFile
 import requests
 class NUUORceScan:
     def __init__(self):
@@ -18,8 +19,7 @@ class NUUORceScan:
             if "gid=" in req.text:
                 OutPrintInfoSuc("Nuuo", f"存在Nuuo-Rce {url2}")
                 if self.batch:
-                    with open("./result/nuuo_rce.txt","a") as w:
-                        w.write(f"{url2}\n")
+                    OutPutFile("Nuuo",f"存在Nuuo-Rce {url2}")
                 return True
             else:
                 if not self.batch:

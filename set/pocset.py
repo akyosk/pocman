@@ -33,8 +33,8 @@ modules = [
     {"name": "Web", "description": "通过domain扫描[b bright_red]cert/dns/ip/domain[/b bright_red]信息", "params": {"domain": domain},'poc': "cve.WebInfoScan.Crt.CERTScan"},
     {"name": "Web", "description": "通过domain名称随机生成[b bright_red]Password爆破字典[/b bright_red]", "params": {"domain": domain,"counts": 50000},'poc': "cve.WebInfoScan.DomainPassword.PwdsDomain"},
     {"name": "Web", "description": "通过securitytrails扫描domain的[b bright_red]ip/dns/domain[/b bright_red]信息", "params": {"domain": domain},'poc': "cve.WebInfoScan.HistoryIp.HistoryIpScan"},
-    {"name": "Web", "description": "通过[b bright_red]jsfinder[/b bright_red]扫描目标网站源码敏感信息", "params": {"url": url,"cookie": cookie, "depth": False,"threads":threads,"proxy": proxy,"ssl": ssl},'poc': "cve.WebInfoScan.JsFinder.JsFinderScan"},
-    {"name": "Web", "description": "通过[b bright_red]jsfinder[/b bright_red]扫描目标网站源码敏感信息,对传参对数据进行SQL/XSS/目录穿越检测", "params": {"url": url,"cookie": cookie, "depth": False,"threads":threads,"proxy": proxy,"ssl": ssl},'poc': "cve.WebInfoScan.WebAll.JsFinderScan2"},
+    {"name": "Web", "description": "通过[b bright_red]jsfinder[/b bright_red]扫描目标网站源码敏感信息", "params": {"url": url,"cookie": cookie, "depth": False,"header": ua,"threads":threads,"proxy": proxy,"ssl": ssl},'poc': "cve.WebInfoScan.JsFinder.JsFinderScan"},
+    {"name": "Web", "description": "通过[b bright_red]jsfinder[/b bright_red]扫描目标网站源码敏感信息,对传参对数据进行SQL/XSS/目录穿越检测", "params": {"url": url,"cookie": cookie,"header": ua, "depth": False,"threads":threads,"proxy": proxy,"ssl": ssl},'poc': "cve.WebInfoScan.WebAll.JsFinderScan2"},
     {"name": "Web", "description": "[b bright_red]JSscanner[/b bright_red]工具移植,递归式网站目录扫描", "params": {"url": url,"header":ua,"wait":3,"height": 0,"proxy":proxy,"level":0, "timeout":0,"ssl":ssl,"*Tips1*": "wait为请求超时等待时间｜height为查找深度","*Tips2*":"level为最大递减数，默认0为全递减｜timeout为请求间隔延时"},'poc': "cve.WebInfoScan.JScanner.JscannerMaster"},
     {"name": "Web", "description": "通过ip扫描目标网站[b bright_red]端口[/b bright_red]信息", "params": {"ip": ip,"nums": 10000,"threads": threads},'poc': "cve.WebInfoScan.PortScan.ScanProt"},
     {"name": "Web", "description": "通过url扫描目标网站port[b bright_red]端口[/b bright_red]信息", "params": {"url": url,"nums": 10000,"header":ua,"ssl": ssl,"proxy": proxy,"timeout":timeout,"threads": threads},'poc': "cve.WebInfoScan.DoaminPortScan.DoaminScanProt"},
@@ -83,6 +83,7 @@ modules = [
     {"name": "ThinkPHP", "description": "点点商场(SHOP)ThinkPHP二开 kefu接口存在[b bright_red]SQL[/b bright_red]注入漏洞","params": {"url": url,"ssl": ssl,"header": ua,"proxy": proxy, "timeout": timeout,"batch_work":False},"attack":"Think", 'poc': "cve.ThinkPHP.ThinkphpKefu.ThinkKeFuScan"},
     {"name": "JBoss", "description": "扫描历史各类[b bright_red]Jboss[/b bright_red]漏洞", "params": {"url": url,"ssl": ssl, "header": ua,"proxy":proxy,"batch_work":False},"attack":"jboss",'poc': "cve.JBoss.JbossVuls.JbossVulsScan"},
     {"name": "FastAdmin", "description": "FastAdmin后台[b bright_red]文件上传[/b bright_red]漏洞", "params": {"url": url, "header": ua, "cookie":cookie, "ssl": ssl,"proxy":proxy},'poc': "cve.FastAdmin.FastAdminDirUpload.FastAdminDirUploadScan"},
+    {"name": "FastAdmin", "description": "FastAdmin[b bright_red]任意文件读取[/b bright_red]漏洞", "params": {"url": url,"ssl": ssl,"header":ua,"proxy":proxy,"timeout":timeout,"batch_work":False,"fofa":'app="FastAdmin"'},"attack":".php",'poc': "cve.FastAdmin.FastAdminDBFileRead.FastAdminDBFileReadScan"},
     {"name": "FTP", "description": "通过IP检测FTP[b bright_red]笑脸[/b bright_red]漏洞", "params": {"ip": ip},'poc': "cve.Ftp.FtpSmile.FtpScan"},
     {"name": "LanLing", "description": "检测LanLing[b bright_red]debug.jsp代码执行[/b bright_red]漏洞", "params": {"url": url,"cmd":cmd,"ssl":ssl,"header":ua,"proxy":proxy,"batch_work":False},"attack":"Landray",'poc': "cve.Lanling.LanlingDebugRce.LanlingDebugRceScan"},
     {"name": "LanLing", "description": "检测LanLing[b bright_red]任意文件读取[/b bright_red]漏洞", "params": {"url": url,"file":file,"ssl":ssl,"header":ua,"proxy":proxy,"batch_work":False},"attack":"Landray",'poc': "cve.Lanling.LanlingDirRead.LanlingDirReadScan"},
@@ -327,5 +328,6 @@ modules = [
     {"name": "BT", "description": "BT(宝塔)default.db[b bright_red]密码[/b bright_red]解密", "params": {"btdiv":"执行SELECT div from div_list;获取","password":"bt password"},'poc': "cve.BT.BTDecodePassword.BT_DecodePassWord"},
     {"name": "EyouCMS", "description": "EyouCMS(易优)前台[b bright_red]RCE[/b bright_red]漏洞", "params": {"url": url,"ssl": ssl,"header":ua,"proxy":proxy,"timeout":timeout,"batch_work":False},'poc': "cve.EyouCMS.EyouCMS_RCE.EyouCMS_RCE_Scan"},
     {"name": "SolarWinds", "description": "SolarWinds Serv-U[b bright_red]任意文件读取[/b bright_red]漏洞", "params": {"url": url,"ssl": ssl,"header":ua,"proxy":proxy,"timeout":timeout,"batch_work":False,"fofa":'server="Serv-U"'},'poc': "cve.SolarWinds.SolarWinds_File_Read.SolarWinds_File_Read_Scan"},
+    {"name": "PHP", "description": "PHP CGI Windows平台CVE-2024-4577[b bright_red]远程代码执行[/b bright_red]漏洞", "params": {"url": url,"cmd":"<?php system('whoami');?>","ssl": ssl,"header":ua,"proxy":proxy,"timeout":timeout,"batch_work":False},'poc': "cve.PHP.CVE_2024_4577.Cve_2024_4577"},
 
 ]

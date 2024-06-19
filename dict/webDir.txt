@@ -1,5 +1,6 @@
 /phpmyadmin
 /nacos
+/metrics
 /admin
 /login
 /user/login

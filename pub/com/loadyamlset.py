@@ -53,5 +53,7 @@ class ConfigLoader:
             "whoisxmlapi_key": self.config['api_keys']['whoisxmlapi_key'],
             "cmd5_key": self.config['cmd5']['key'],
             "cmd5_mail": self.config['cmd5']['mail'],
+            "hunter_how_key": self.config['api_keys']['hunter_how_key'],
+            "daydaymap_key": self.config['api_keys']['daydaymap_key']
         }
         return values
