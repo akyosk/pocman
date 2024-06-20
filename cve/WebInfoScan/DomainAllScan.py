@@ -1,7 +1,9 @@
+import time
+
 from bs4 import BeautifulSoup
 import re
 import feedparser
-from concurrent.futures import ThreadPoolExecutor,as_completed,wait
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait
 import dns.resolver
 import json
 import base64
@@ -12,11 +14,15 @@ from pub.com.outprint import OutPrintInfo
 # from set.config import api_list,censys_api,shodan_api,virustotal_api,dnsdump_csrftoken,fofa_email,fofa_key,yt_key,viewdns_key,fullhunt_api,zoomeye_key,quake_key,binaryedge_key,whoisxmlapi_key
 import urllib3
 from rich.progress import Progress
+
 urllib3.disable_warnings()
+
 
 def get_set():
     from pub.com.loadyamlset import ConfigLoader
     return ConfigLoader().get_values()
+
+
 config_yaml_values = get_set()
 api_list = config_yaml_values['api_list']
 censys_auth = config_yaml_values['censys_auth']
@@ -34,14 +40,16 @@ binaryedge_key = config_yaml_values['binaryedge_key']
 whoisxmlapi_key = config_yaml_values['whoisxmlapi_key']
 hunter_how_key = config_yaml_values['hunter_how_key']
 daydaymap_key = config_yaml_values['daydaymap_key']
+
+
 class CERTScan:
     def get_rss_for_domain(self, domain):
         # print(domain)
         """Pull the domain identity information from CERT.sh"""
-        OutPrintInfo("CERT",f"Retrieving information about [b bright_red]{domain}[/b bright_red] from CERT.sh...")
+        OutPrintInfo("CERT", f"Retrieving information about [b bright_red]{domain}[/b bright_red] from CERT.sh...")
         results_raw = requests.get(self.base_url.format(domain)).content
         results_entries = feedparser.parse(results_raw)["entries"]
-        OutPrintInfo("CERT","Retrieval of info done.")
+        OutPrintInfo("CERT", "Retrieval of info done.")
         return results_entries
 
     def parse_entries(self, identity, results_list):
@@ -64,22 +72,22 @@ class CERTScan:
         sorted_results = sorted(set(results))
         if do_resolve_dns:
             try:
-                OutPrintInfo("CERT","DNS resolution turned on.")
+                OutPrintInfo("CERT", "DNS resolution turned on.")
                 final_results = []
                 for cur_result in sorted_results:
                     if "*" not in cur_result:
-                        OutPrintInfo("CERT",f"Resolving {cur_result}...")
+                        OutPrintInfo("CERT", f"Resolving {cur_result}...")
                         try:
                             ip_addresses = dns.resolver.query(cur_result)
                             for ip_address in ip_addresses:
                                 final_results.append("{}\t{}".format(cur_result, ip_address))
                         except dns.resolver.NoAnswer:
                             final_results.append(cur_result)
-                        OutPrintInfo("CERT","... done.")
+                        OutPrintInfo("CERT", "... done.")
                     else:
                         final_results.append(cur_result)
             except Exception as e:
-                OutPrintInfo("CERT","[b yellow]未能从CERT搜索到目标信息或者连接出错")
+                OutPrintInfo("CERT", "[b yellow]未能从CERT搜索到目标信息或者连接出错")
         else:
             final_results = sorted_results
         return final_results
@@ -98,14 +106,17 @@ class CERTScan:
             self.parse_entries(cur_entry, results)
         final_results = self.format_entries(results, resolve_dns)
         if final_results:
-            OutPrintInfo("CERT",f"通过证书共找到 [b bright_red]{str(len(final_results))}[/b bright_red] 个子域名")
+            OutPrintInfo("CERT", f"通过证书共找到 [b bright_red]{str(len(final_results))}[/b bright_red] 个子域名")
             return final_results
         else:
             OutPrintInfo("CERT", f"通过证书未能找到相关结果 :(")
             return None
+
+
 class SecuritytrailsScan:
     def __init__(self):
         self._api_list = api_list
+
     def _domains_scan(self, domain, api_key):
         url = f"https://api.securitytrails.com/v1/domain/{domain}/subdomains"
         head = {"APIKEY": api_key, "accept": "application/json"}
@@ -131,7 +142,8 @@ class SecuritytrailsScan:
                     return "None"
                 else:
                     domain_url = [res + '.' + res_domain for res in domains]
-                    OutPrintInfo("Securitytrails", f"任务执行完成Securitytrails共找到 [b bright_red]{len(domains)}[/b bright_red] 个子域名")
+                    OutPrintInfo("Securitytrails",
+                                 f"任务执行完成Securitytrails共找到 [b bright_red]{len(domains)}[/b bright_red] 个子域名")
                     return domain_url
             else:
                 # OutPrintInfo("Securitytrails", "[b yellow]未能在Securitytrails匹配到相关结果 :(")
@@ -163,24 +175,21 @@ class SecuritytrailsScan:
         else:
             return res
 
-
-
-
-
-    def main(self,target):
+    def main(self, target):
         self._url = target
         if self._url:
-            OutPrintInfo("Securitytrails","开始通过Securitytrails接口查找子域名......")
+            OutPrintInfo("Securitytrails", "开始通过Securitytrails接口查找子域名......")
             res = self._check()
             if res:
                 # OutPrintInfo("Securitytrails","使用Securitytrails接口信息查询结束")
                 return res
             else:
-                OutPrintInfo("Securitytrails","[b yellow]使用Securitytrails没有获取到域名相关结果 :(")
+                OutPrintInfo("Securitytrails", "[b yellow]使用Securitytrails没有获取到域名相关结果 :(")
                 return None
         else:
-            OutPrintInfo("Securitytrails","[b yellow]目标不具备子域名搜索条件 :(")
+            OutPrintInfo("Securitytrails", "[b yellow]目标不具备子域名搜索条件 :(")
             return None
+
 
 class SecuritytrailsIPScan:
     def __init__(self):
@@ -208,7 +217,8 @@ class SecuritytrailsIPScan:
                         res_dns = res['ip']
                         if res_dns not in ips_list:
                             ips_list.append(res_dns)
-                OutPrintInfo("Securitytrails",f"任务执行完成Securitytrails共找到 [b bright_red]{str(len(ips_list))}[/b bright_red] 个IP")
+                OutPrintInfo("Securitytrails",
+                             f"任务执行完成Securitytrails共找到 [b bright_red]{str(len(ips_list))}[/b bright_red] 个IP")
                 return ips_list
             else:
                 # OutPrintInfo("Securitytrails", "[b yellow]Securitytrails没有匹配到IP相关结果 :(")
@@ -216,8 +226,6 @@ class SecuritytrailsIPScan:
         except Exception:
             # OutPrintInfo("Securitytrails", "[b yellow]无法连接Securitytrails或者没有匹配到IP相关结果 :(")
             return False
-
-
 
     def _api_scan_work(self, api_key):
         try:
@@ -257,10 +265,7 @@ class SecuritytrailsIPScan:
         else:
             return res
 
-
-
-
-    def main(self,target):
+    def main(self, target):
         self._url = target
         if '://' in self._url:
             domain = self._url.split('://')[-1]
@@ -269,7 +274,7 @@ class SecuritytrailsIPScan:
         pattern = r'[a-zA-Z]'
         data_check = bool(re.search(pattern, domain))
         if data_check:
-            OutPrintInfo("Securitytrails","开始通过接口查找历史IP......")
+            OutPrintInfo("Securitytrails", "开始通过接口查找历史IP......")
             res = self._check()
             if res:
                 # OutPrintInfo("Securitytrails", "使用Securitytrails接口信息查询结束")
@@ -281,9 +286,10 @@ class SecuritytrailsIPScan:
             OutPrintInfo("Securitytrails", "[b yellow]目标不具备子域名搜索条件 :(")
             return None
 
+
 class Shodan:
-    def main(self,domain):
-          # <- here your API KEY
+    def main(self, domain):
+        # <- here your API KEY
         if not shodan_api:
             OutPrintInfo("YT", "[b cyan]未检测到Shodan-Key,不执行Shodan相关操作")
             return None
@@ -305,14 +311,15 @@ class Shodan:
             OutPrintInfo("Shodan", "[b yellow]请求Shodan查询时出错 :(")
             return None
 
+
 class CensysDomainInfo:
-    def main(self,target):
+    def main(self, target):
         domain = target
         cookie = censys_auth
         if '://' in target:
             domain = target.split('://')[-1]
         if not cookie:
-            OutPrintInfo("Censys","未检测到Censys-Token")
+            OutPrintInfo("Censys", "未检测到Censys-Token")
             return None
         ip_list = []
         url = f'https://search.censys.io/api/v2/hosts/search?q=services.tls.certificates.leaf_data.names%3A+{domain}&per_page=100&virtual_hosts=EXCLUDE'
@@ -321,27 +328,31 @@ class CensysDomainInfo:
             'Authorization': cookie
         }
         try:
-            response = requests.get(url,headers=header).json()
+            response = requests.get(url, headers=header).json()
             lis = response['result']['hits']
 
             for i in lis:
                 if i not in ip_list:
                     ip_list.append(i["ip"])
             if ip_list:
-                OutPrintInfo("Censys",f"任务执行完成Censys共找到 [b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
+                OutPrintInfo("Censys",
+                             f"任务执行完成Censys共找到 [b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
                 return ip_list
         except Exception:
-            OutPrintInfo("Censys","[b yellow]请求Censys查询时出错 :(")
+            OutPrintInfo("Censys", "[b yellow]请求Censys查询时出错 :(")
             return None
 
+
 class Work:
-    def fofa(self,ip):
+    def fofa(self, ip):
         res = FofaIp().main(ip)
         return res if res else None
-    def vt(self,ip):
+
+    def vt(self, ip):
         res = VirustotalIP().main(ip)
         return res if res else None
-    def sec(self,ip):
+
+    def sec(self, ip):
         domain_list = []
         header = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0",
@@ -361,13 +372,16 @@ class Work:
         except Exception:
             return None
             pass
-    def yt(self,ip):
+
+    def yt(self, ip):
         res = YtIp().main(ip)
         return res if res else None
-    def quake(self,ip):
+
+    def quake(self, ip):
         res = Quake_IP().main(ip)
         return res if res else None
-    def main(self,ip):
+
+    def main(self, ip):
         domain_list = []
         res1 = self.sec(ip)
         res2 = self.vt(ip)
@@ -396,12 +410,13 @@ class Work:
                     domain_list.append(i)
         return domain_list if domain_list else None
 
+
 class Virustotal:
-    def main(self,domian):
+    def main(self, domian):
         domain_list = []
         url = f"https://www.virustotal.com/api/v3/domains/{domian}/relationships/subdomains?limit=100"
         if not virustotal_api:
-            OutPrintInfo("Virustotal","[b cyan]未检测到Virustotal-Api-Key,不执行Virustotal相关操作")
+            OutPrintInfo("Virustotal", "[b cyan]未检测到Virustotal-Api-Key,不执行Virustotal相关操作")
             return None
         headers = {
             "accept": "application/json",
@@ -414,16 +429,18 @@ class Virustotal:
             for i in resq['data']:
                 domain_list.append(i['id'])
             if domain_list:
-                OutPrintInfo("Virustotal", f"任务执行完成Virustotal共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
+                OutPrintInfo("Virustotal",
+                             f"任务执行完成Virustotal共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
             else:
                 OutPrintInfo("Virustotal", "[b yellow]Virustotal未搜索到相关结果 :(")
             return domain_list if domain_list else None
         except Exception:
-            OutPrintInfo("Virustotal","[b yellow]请求Virustotal查询时出错 :(")
+            OutPrintInfo("Virustotal", "[b yellow]请求Virustotal查询时出错 :(")
             return None
 
+
 class VirustotalIP:
-    def main(self,ip):
+    def main(self, ip):
         if not virustotal_api:
             # OutPrintInfo("Virustotal","[b cyan]未检测到Virustotal-Api-Key,不执行Virustotal相关操作")
             return None
@@ -444,11 +461,12 @@ class VirustotalIP:
         except Exception:
             return None
 
+
 class DnsDumpster:
-    def main(self,domain):
+    def main(self, domain):
         if not dnsdump_csrftoken:
-            OutPrintInfo("DnsDumpster","[b cyan]未检测到Dnsdump-csrftoken,不执行Dnsdump-csrftoken相关操作")
-            return None,None
+            OutPrintInfo("DnsDumpster", "[b cyan]未检测到Dnsdump-csrftoken,不执行Dnsdump-csrftoken相关操作")
+            return None, None
         ip_list = []
         domain_list = []
         url = "https://dnsdumpster.com/"
@@ -489,19 +507,22 @@ class DnsDumpster:
             if ip_match:
                 for i in ip_match:
                     ip_list.append(i)
-            OutPrintInfo("DnsDumpster", f"任务执行完成DnsDumpster共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
-            OutPrintInfo("DnsDumpster", f"任务执行完成DnsDumpster共找到 [b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
+            OutPrintInfo("DnsDumpster",
+                         f"任务执行完成DnsDumpster共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
+            OutPrintInfo("DnsDumpster",
+                         f"任务执行完成DnsDumpster共找到 [b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
 
-            return ip_list,domain_list
+            return ip_list, domain_list
         except Exception:
-            OutPrintInfo("DnsDumpster","[b yellow]请求DnsDumpster查询时出错 :(")
-            return None,None
+            OutPrintInfo("DnsDumpster", "[b yellow]请求DnsDumpster查询时出错 :(")
+            return None, None
+
 
 class Fofa:
-    def main(self,domain):
+    def main(self, domain):
         if not fofa_key:
-            OutPrintInfo("Fofa","[b cyan]未检测到Fofa-Key,不执行Fofa相关操作")
-            return None,None
+            OutPrintInfo("Fofa", "[b cyan]未检测到Fofa-Key,不执行Fofa相关操作")
+            return None, None
         ip_list = []
         domain_list = []
         query = f'domain="{domain}"'
@@ -536,19 +557,20 @@ class Fofa:
                              f"任务执行完成Fofa共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
                 OutPrintInfo("Fofa",
                              f"任务执行完成Fofa共找到 [b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
-                return ip_list,domain_list
+                return ip_list, domain_list
             else:
                 if "F点余额不足" in resq.text:
                     OutPrintInfo("Fofa", "[b yellow]F点余额不足 :(")
-                    return None,None
+                    return None, None
                 OutPrintInfo("Fofa", "[b yellow]Fofa查询出错,检测Key是否可用 :(")
-                return None,None
+                return None, None
         except Exception:
-            OutPrintInfo("Fofa","[b yellow]请求Fofa查询时出错 :(")
+            OutPrintInfo("Fofa", "[b yellow]请求Fofa查询时出错 :(")
             return None, None
 
+
 class FofaIp:
-    def main(self,ip):
+    def main(self, ip):
         if not fofa_key:
             # OutPrintInfo("Fofa","[b cyan]未检测到Fofa-Key,不执行Fofa相关操作")
             return None
@@ -584,14 +606,16 @@ class FofaIp:
         except Exception:
             # OutPrintInfo("DnsDumpster","[b yellow]Fofa未能获取到相关结果或无法连接 :(")
             return None, None
+
+
 class Yt:
-    def main(self,domain):
+    def main(self, domain):
         search = f'domain="{domain}"'
         search = base64.urlsafe_b64encode(search.encode("utf-8")).decode()
         # print("search:", search)
         if not yt_key:
-            OutPrintInfo("YT","[b cyan]未检测到YT-Key,不执行YT相关操作")
-            return None,None
+            OutPrintInfo("YT", "[b cyan]未检测到YT-Key,不执行YT相关操作")
+            return None, None
         key = yt_key
         ip_list = []
         domain_list = []
@@ -610,17 +634,20 @@ class Yt:
                         if i['domain']:
                             if i['domain'] not in domain_list:
                                 domain_list.append(i['domain'])
-                OutPrintInfo("YT",f"任务执行完成YT共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
-                OutPrintInfo("YT",f"任务执行完成YT共找到 [b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
-                return ip_list,domain_list
+                OutPrintInfo("YT",
+                             f"任务执行完成YT共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
+                OutPrintInfo("YT", f"任务执行完成YT共找到 [b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
+                return ip_list, domain_list
             else:
                 OutPrintInfo("YT", "[b yellow]使用YT未查询成功,检测Key是否可用 :(")
-                return None,None
+                return None, None
         except Exception:
             OutPrintInfo("YT", "[b yellow]请求YT查询时出错 :(")
             return None, None
+
+
 class YtIp:
-    def main(self,ip):
+    def main(self, ip):
         search = f'ip="{ip}"'
         search = base64.urlsafe_b64encode(search.encode("utf-8")).decode()
         # print("search:", search)
@@ -650,12 +677,14 @@ class YtIp:
         except Exception:
             # OutPrintInfo("YT", "[b yellow]使用YT未查询成功,检测Key是否可用 :(")
             return None
+
+
 class ViewDNS:
-    def main(self,domain):
+    def main(self, domain):
         url = f"https://api.viewdns.info/iphistory/?domain={domain}&apikey={viewdns_key}&output=json"
         ip_list = []
         if not viewdns_key:
-            OutPrintInfo("ViewDNS","[b cyan]未检测到ViewDNS-Key,不执行ViewDNS相关操作")
+            OutPrintInfo("ViewDNS", "[b cyan]未检测到ViewDNS-Key,不执行ViewDNS相关操作")
             return None
         try:
             req = requests.get(url)
@@ -666,14 +695,15 @@ class ViewDNS:
             for i in res_json['response']['records']:
                 if i['ip'] not in ip_list:
                     ip_list.append(i['ip'])
-            OutPrintInfo("ViewDNS",f"任务执行完成ViewDNS共找到 [b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
+            OutPrintInfo("ViewDNS", f"任务执行完成ViewDNS共找到 [b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
             return ip_list
         except Exception:
             OutPrintInfo("ViewDNS", "[b yellow]请求ViewDNS查询时出错 :(")
             return None
 
+
 class Chaziyu:
-    def main(self,domain):
+    def main(self, domain):
         l = f"https://chaziyu.com/{domain}/"
         domain_list = []
         header = {
@@ -691,12 +721,12 @@ class Chaziyu:
                          f"任务执行完成Chaziyu共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
             return domain_list
         except Exception:
-            OutPrintInfo("Chaziyu","[b yellow]请求Chaziyu查询时出错 :(")
+            OutPrintInfo("Chaziyu", "[b yellow]请求Chaziyu查询时出错 :(")
             return None
 
 
 class Jldc:
-    def main(self,domain):
+    def main(self, domain):
         l = f"https://jldc.me/anubis/subdomains/{domain}"
         domain_list = []
         header = {
@@ -711,13 +741,16 @@ class Jldc:
             if not domain_list:
                 OutPrintInfo("Jldc", "[b yellow]Jldc未查询到子域相关结果 :(")
                 return None
-            OutPrintInfo("Jldc",f"任务执行完成Jldc共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
+            OutPrintInfo("Jldc",
+                         f"任务执行完成Jldc共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
             return domain_list
         except Exception:
             OutPrintInfo("Jldc", "[b yellow]请求Jldc查询时出错 :(")
             return None
+
+
 class Sitedossier:
-    def main(self,domain):
+    def main(self, domain):
         l = f"http://www.sitedossier.com/parentdomain/{domain}/"
         domain_list = []
         header = {
@@ -745,8 +778,10 @@ class Sitedossier:
         except Exception:
             OutPrintInfo("Sitedossier", "[b yellow]请求Sitedossier查询时出错 :(")
             return None
+
+
 class Rapiddns:
-    def main(self,domain):
+    def main(self, domain):
         l = f"https://rapiddns.io/s/{domain}#result"
         header = {
             "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Mobile Safari/537.36",
@@ -766,14 +801,17 @@ class Rapiddns:
             if not domain_list:
                 OutPrintInfo("Rapiddns", "[b yellow]Rapiddns未查询到子域相关结果 :(")
                 return None
-            OutPrintInfo("Rapiddns",f"任务执行完成Rapiddns共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
+            OutPrintInfo("Rapiddns",
+                         f"任务执行完成Rapiddns共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
 
             return domain_list
         except Exception:
             OutPrintInfo("Rapiddns", "[b yellow]请求Rapiddns查询时出错 :(")
             return None
+
+
 class Fullhunt:
-    def main(self,domain):
+    def main(self, domain):
         domain_list = []
         l = f"https://fullhunt.io/api/v1/domain/{domain}/subdomains"
         if not fullhunt_api:
@@ -801,8 +839,10 @@ class Fullhunt:
         except Exception:
             OutPrintInfo("Fullhunt", "[b yellow]请求Fullhunt查询时出错 :(")
             return None
+
+
 class Alienvault:
-    def main(self,domain):
+    def main(self, domain):
         l = f"https://otx.alienvault.com/otxapi/indicators/domain/passive_dns/{domain}"
         domain_list = []
         ip_list = []
@@ -831,7 +871,6 @@ class Alienvault:
         except Exception:
             OutPrintInfo("Alienvault", "[b yellow]请求Alienvault查询DNS/Domain时出错 :(")
 
-
         try:
             l = f"https://otx.alienvault.com/otxapi/indicators/domain/url_list/{domain}"
             header = {
@@ -848,7 +887,7 @@ class Alienvault:
 
         except Exception:
             OutPrintInfo("Alienvault", "[b yellow]请求Alienvault查询IP/Domain时出错 :(")
-            return None,None
+            return None, None
         OutPrintInfo("Alienvault",
                      f"任务执行完成Alienvault共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
         OutPrintInfo("Alienvault",
@@ -857,9 +896,8 @@ class Alienvault:
         return ip_list, domain_list
 
 
-
 class Certspotter:
-    def main(self,domain):
+    def main(self, domain):
         # certspotter -> LIST -> JSON: key -> dns_names
         url = "https://api.certspotter.com/v1/issuances?domain={domain}&include_subdomains=true&expand=dns_names".format(
             domain=domain)
@@ -881,8 +919,10 @@ class Certspotter:
         except Exception:
             OutPrintInfo("Certspotter", "[b yellow]请求Certspotter查询时出错 :(")
             return None
+
+
 class Hackertarget:
-    def main(self,domain):
+    def main(self, domain):
         # hackertarget -> CSV -> domain, ip
         url = "https://api.hackertarget.com/hostsearch/?q={domain}".format(domain=domain)
         try:
@@ -902,8 +942,10 @@ class Hackertarget:
         except Exception:
             OutPrintInfo("Hackertarget", "[b yellow]请求Hackertarget查询时出错 :(")
             return None
+
+
 class Archive:
-    def main(self,domain):
+    def main(self, domain):
         # webarchive -> TEXT URL LIST -> match subdomain
         url = "https://web.archive.org/cdx/search/cdx?url=*.{domain}/*&output=txt&fl=original&collapse=urlkey".format(
             domain=domain)
@@ -927,12 +969,14 @@ class Archive:
         except Exception:
             OutPrintInfo("Archive", "[b yellow]请求Archive查询时出错 :(")
             return None
+
+
 class ZoomEye:
-    def main(self,domain):
+    def main(self, domain):
         url = f'https://api.zoomeye.org/domain/search?q={domain}&type=1&page=1'
         if not zoomeye_key:
-            OutPrintInfo("ZoomEye","[b cyan]未检测到ZoomEye-Key不执行相关操作")
-            return None,None
+            OutPrintInfo("ZoomEye", "[b cyan]未检测到ZoomEye-Key不执行相关操作")
+            return None, None
         domain_list = []
         ip_list = []
         header = {
@@ -955,35 +999,39 @@ class ZoomEye:
             return ip_list, domain_list
         except Exception:
             OutPrintInfo("ZoomEye", "[b yellow]请求ZoomEye查询IP/Domain时出错 :(")
-            return None,None
+            return None, None
+
 
 class Dnshistory:
-    def main(self,domain):
+    def main(self, domain):
         url = f"https://dnshistory.org/subdomains/1/{domain}"
         domain_list = []
         h = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
         try:
-            r = requests.get(url, headers=h)       
+            r = requests.get(url, headers=h)
             res = re.findall('<a href="/dns-records/(.*?)">', r.text)
             if res:
                 for i in res:
                     domain_list.append(i.strip())
             else:
-                OutPrintInfo("Dnshistory",f"[b yellow]使用Dnshistory查询未查询到相关子域名 :(")
-            OutPrintInfo("Dnshistory",f"任务执行完成Dnshistory共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
+                OutPrintInfo("Dnshistory", f"[b yellow]使用Dnshistory查询未查询到相关子域名 :(")
+            OutPrintInfo("Dnshistory",
+                         f"任务执行完成Dnshistory共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名")
             return domain_list
         except Exception as e:
-            OutPrintInfo("Dnshistory",f"[b yellow]请求Dnshistory查询时出错 :(")
+            OutPrintInfo("Dnshistory", f"[b yellow]请求Dnshistory查询时出错 :(")
             return None
+
+
 class Quake_Domain:
-    def main(self,domain):
+    def main(self, domain):
         domain_list = []
         ip_list = []
         if not quake_key:
-            OutPrintInfo("Quake","[b yellow]未检测到queke-key不执行相关操作 :(")
-            return 
+            OutPrintInfo("Quake", "[b yellow]未检测到queke-key不执行相关操作 :(")
+            return
         headers = {
             "X-QuakeToken": quake_key,
             "Content-Type": "application/json"
@@ -1000,7 +1048,8 @@ class Quake_Domain:
             ],
         }
         try:
-            response = requests.post(url="https://quake.360.net/api/v3/search/quake_service", headers=headers, json=data)
+            response = requests.post(url="https://quake.360.net/api/v3/search/quake_service", headers=headers,
+                                     json=data)
             if response.json()['message'] == "Successful.":
                 for i in response.json()['data']:
                     if 'domain' in i or 'ip' in i:
@@ -1008,17 +1057,19 @@ class Quake_Domain:
                             domain_list.append(i['domain'])
                         if i['ip'] not in ip_list:
                             ip_list.append(i['ip'])
-                OutPrintInfo("Quake",f"任务执行完成Quake共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名,[b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
-                return domain_list,ip_list
+                OutPrintInfo("Quake",
+                             f"任务执行完成Quake共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名,[b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
+                return domain_list, ip_list
             else:
                 OutPrintInfo("Quake", f"[b yellow]使用Quake查询未成功,检测是否具有查询次数 :(")
                 return None, None
         except Exception as e:
-            OutPrintInfo("Quake",f"[b yellow]请求Quake查询时出错 :(")
-            return None,None
+            OutPrintInfo("Quake", f"[b yellow]请求Quake查询时出错 :(")
+            return None, None
+
 
 class Quake_IP:
-    def main(self,ip):
+    def main(self, ip):
         domain_list = []
         if not quake_key:
             # OutPrintInfo("Quake","未检测到queke-key不执行相关操作")
@@ -1039,7 +1090,8 @@ class Quake_IP:
             ],
         }
         try:
-            response = requests.post(url="https://quake.360.net/api/v3/search/quake_service", headers=headers, json=data)
+            response = requests.post(url="https://quake.360.net/api/v3/search/quake_service", headers=headers,
+                                     json=data)
             if response.json()['message'] == "Successful.":
                 for i in response.json()['data']:
                     if 'domain' in i:
@@ -1053,8 +1105,10 @@ class Quake_IP:
         except Exception as e:
             # OutPrintInfo("Quake",f"[b yellow]使用Quake查询未成功,{e} :(")
             return None
+
+
 class Netlas:
-    def main(self,domain):
+    def main(self, domain):
         domain_list = []
         ip_list = []
         url = f'https://app.netlas.io/api/domains/?q=domain:(domain:*.{domain}+AND+NOT+domain:{domain})&start=0&indices='
@@ -1079,12 +1133,14 @@ class Netlas:
         except Exception as e:
             OutPrintInfo("Netlas", f"[b yellow]请求Netlas查询时出错 :(")
             return None, None
+
+
 class Binaryedge:
-    def main(self,domain):
+    def main(self, domain):
         domain_list = []
         url = f'https://api.binaryedge.io/v2/query/domains/subdomain/{domain}'
         if not binaryedge_key:
-            OutPrintInfo("Binaryedge","[b yellow]未检测到binaryedge-key不执行相关操作 :(")
+            OutPrintInfo("Binaryedge", "[b yellow]未检测到binaryedge-key不执行相关操作 :(")
             return None
         header = {"X-Key": binaryedge_key}
         try:
@@ -1103,10 +1159,12 @@ class Binaryedge:
         except Exception:
             OutPrintInfo("Binaryedge", f"[b yellow]请求Binaryedge查询时出错 :(")
             return None
+
+
 class Google:
-    def make_get_request(self,url):
+    def make_get_request(self, url):
         try:
-            response = requests.get(url, verify=False)
+            response = requests.get(url, verify=False, timeout=10)
 
             # Check if the request was successful (status code 200)
             if response.status_code == 200:
@@ -1122,8 +1180,7 @@ class Google:
             # pass
             # print(f"An error occurred: {e}")
 
-
-    def extract_urls(self,text):
+    def extract_urls(self, text):
         try:
             pattern = r'https?://\S+'  # This regex pattern matches URLs starting with "http://" or "https://" and followed by non-space characters.
             urls = re.findall(pattern, text)
@@ -1131,15 +1188,13 @@ class Google:
         except Exception:
             pass
 
-
-    def remove_url_path(self,url):
+    def remove_url_path(self, url):
         parsed_url = urlparse(url)
         scheme = parsed_url.scheme
         netloc = parsed_url.netloc
         return f"{scheme}://{netloc}"
 
-
-    def go(self,target_url):
+    def go(self, target_url):
         # Make the GET request to the website
         response = self.make_get_request(target_url)
         if not response:
@@ -1151,8 +1206,7 @@ class Google:
                 results.append(self.remove_url_path(url))
         return results
 
-
-    def main(self,domain):
+    def main(self, domain):
         # requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
         pages = int(5)
         loops = 0
@@ -1174,10 +1228,12 @@ class Google:
             for item in unique_list:
                 if item.split("://")[-1] not in res_domain:
                     res_domain.append(item.split("://")[-1])
-        OutPrintInfo("Google",f"任务执行完成Google共找到 [b bright_red]{str(len(res_domain))}[/b bright_red] 个子域名")
+        OutPrintInfo("Google", f"任务执行完成Google共找到 [b bright_red]{str(len(res_domain))}[/b bright_red] 个子域名")
         return res_domain
+
+
 class Whoisxmlapi:
-    def main(self,domain):
+    def main(self, domain):
         if not whoisxmlapi_key:
             OutPrintInfo("Whoisxmlapi", "[b yellow]未检测到whoisxmlapi-Key不执行相关操作 :(")
             return None
@@ -1199,8 +1255,9 @@ class Whoisxmlapi:
             OutPrintInfo("Whoisxmlapi", "[b yellow]请求Whoisxmlapi查询时出错 :(")
             return None
 
+
 class HunterHow:
-    def main(self,domain):
+    def main(self, domain):
         domain_list = []
         ip_list = []
         query = f'domain="{domain}"'
@@ -1227,10 +1284,12 @@ class HunterHow:
 
         except Exception:
             OutPrintInfo("HunterHow", "[b yellow]请求HunterHow查询时出错 :(")
-            return None,None
+            return None, None
+
+
 class DayDayMap:
-    def main(self,domain):
-        domain_list, ip_list = [],[]
+    def main(self, domain):
+        domain_list, ip_list = [], []
         if not daydaymap_key:
             OutPrintInfo("DayDayMap", "[b yellow]未检测到DayDayMap-Key不执行相关操作 :(")
             return None
@@ -1262,43 +1321,80 @@ class DayDayMap:
         except Exception:
             OutPrintInfo("DayDayMap", "[b yellow]请求DayDayMap查询时出错 :(")
             return None, None
+
+
 class DomainAll:
-    def check_domain(self,domain):
+    def nacos_scan(self, ip):
+        try:
+            url = "http://" + ip + ":8848/nacos"
+            req = requests.get(url, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'},
+                               verify=False, timeout=10)
+            if "nacos" in req.text.lower():
+                OutPrintInfo("Nacos", f"[b bright_red]发现目标存在Nacos: {url}")
+        except Exception:
+            pass
+
+    def http_vuln_dir_scan(self, url):
+        try:
+            req = requests.get(url, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'},
+                               verify=False, timeout=10)
+            if req.status_code == 200:
+                OutPrintInfo("DIR", f"[[b bright_red]发现敏感路径[/b bright_red]] {url}")
+        except Exception:
+            pass
+
+    def check_domain(self, domain):
         def run(domain):
             try:
-                req = requests.get(domain,headers={"User-Agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"},verify=False,timeout=10)
+                req = requests.get(domain, headers={
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"},
+                                   verify=False, timeout=10)
                 req.encoding = req.apparent_encoding
                 soup = BeautifulSoup(req.text, 'html.parser')
                 title = soup.title.string
                 if not title:
                     title = "N/S"
-                return title,req
+                return title, req
             except Exception:
-                return None,None
-        title,req = run(domain)
+                return None, None
+
+        title, req = run(domain)
         if title or req:
-            OutPrintInfo("Check-Domain",f"[[b bright_red]URL[/b bright_red]]{domain} | [[b bright_green]TITLE[/b bright_green]]{title} | [[b magenta]LEN[/b magenta]]{str(len(req.text))} | [[b bright_cyan]CODE[/b bright_cyan]]{str(req.status_code)}")
+            OutPrintInfo("Check-Domain",
+                         f"[[b bright_red]URL[/b bright_red]]{domain} | [[b bright_green]TITLE[/b bright_green]]{title} | [[b magenta]LEN[/b magenta]]{str(len(req.text))} | [[b bright_cyan]CODE[/b bright_cyan]]{str(req.status_code)}")
         else:
-            OutPrintInfo("Check-Domain",f"[b yellow]DOMAIN {domain} 请求出错")
+            OutPrintInfo("Check-Domain", f"[b yellow]DOMAIN {domain} 请求出错")
         return
-    def main(self,target):
-        OutPrintInfo("SUBDOMAIN", "建议开启[b bright_red]VPN")
+
+    def http_server(self, domains):
+        h = ["http://", "https://"]
+        domain_reslist = []
+        for i in domains:
+            if i:
+                OutPrintInfo("SubDomain", i)
+                domain_reslist.extend([k + i for k in h])
+        return domain_reslist
+
+    def main(self, target):
+        OutPrintInfo("SUBDOMAIN", "由于多个引擎处于外网,建议开启[b bright_red]VPN")
         domain = target["domain"]
         file_flag = target["output"]
         max_ip = int(target["max"])
         if "://" in domain:
             domain = domain.split("://")[-1]
         res = []
-        ip_res= []
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
-        OutPrintInfo("Shodan","开始调用Shodan查找...")
+        ip_res = []
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
+        OutPrintInfo("Shodan", "开始调用Shodan查找...")
         shodan = Shodan().main(domain)
         if shodan:
             for i in shodan:
                 if i not in res:
                     res.append(i)
         OutPrintInfo("Shodan", "Shodan查找结束")
-        OutPrintInfo("Working","[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Securitytrails", "开始调用Securitytrails查找...")
         sec = SecuritytrailsScan().main(domain)
         if sec:
@@ -1307,7 +1403,7 @@ class DomainAll:
                     res.append(i)
         # print(sec)
         OutPrintInfo("Securitytrails", "Securitytrails查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("CERT", "开始调用CERT证书查找...")
         try:
             cert = CERTScan().main(domain)
@@ -1320,7 +1416,7 @@ class DomainAll:
 
         # print(cert)
         OutPrintInfo("CERT", "CERT证书查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Virustotal", "开始调用Virustotal查找...")
         vt = Virustotal().main(domain)
         if vt:
@@ -1328,11 +1424,11 @@ class DomainAll:
                 if i not in res:
                     res.append(i)
         OutPrintInfo("Virustotal", "Virustotal查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("DnsDumpster", "开始调用DnsDumpster查找...")
 
-        dnsdump_ip,dnsdump_domain = DnsDumpster().main(domain)
+        dnsdump_ip, dnsdump_domain = DnsDumpster().main(domain)
         if dnsdump_ip:
             for i in dnsdump_ip:
                 if i not in ip_res:
@@ -1343,10 +1439,10 @@ class DomainAll:
                     res.append(i)
         # print(dnsdump_domain)
         OutPrintInfo("DnsDumpster", "DnsDumpster查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("Fofa", "开始调用Fofa查找...")
-        fofa_ip,fofa_domain = Fofa().main(domain)
+        fofa_ip, fofa_domain = Fofa().main(domain)
 
         if fofa_ip:
             for i in fofa_ip:
@@ -1358,9 +1454,9 @@ class DomainAll:
                     res.append(i)
 
         OutPrintInfo("Fofa", "Fofa查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("YT", "开始调用YT查找...")
-        yt_ip,yt_domain = Yt().main(domain)
+        yt_ip, yt_domain = Yt().main(domain)
         if yt_ip:
             for i in yt_ip:
                 if i not in ip_res:
@@ -1371,7 +1467,7 @@ class DomainAll:
                     res.append(i)
         # print(yt_domain)
         OutPrintInfo("YT", "YT查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("Chaziyu", "开始调用Chaziyu查找...")
         chaziyu_domain = Chaziyu().main(domain)
@@ -1381,7 +1477,7 @@ class DomainAll:
                     res.append(i)
         # print(chaziyu_domain)
         OutPrintInfo("Chaziyu", "Chaziyu查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("Jldc", "开始调用Jldc查找...")
         jldc_domain = Jldc().main(domain)
@@ -1391,7 +1487,7 @@ class DomainAll:
                     res.append(i)
         # print(jldc_domain)
         OutPrintInfo("Jldc", "Jldc查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Sitedossier", "开始调用Sitedossier查找...")
 
         sitedoss_domain = Sitedossier().main(domain)
@@ -1401,7 +1497,7 @@ class DomainAll:
                     res.append(i)
         # print(sitedoss_domain)
         OutPrintInfo("Sitedossier", "Sitedossier查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Rapiddns", "开始调用Rapiddns查找...")
         rapiddns_domain = Rapiddns().main(domain)
         if rapiddns_domain:
@@ -1410,7 +1506,7 @@ class DomainAll:
                     res.append(i)
         # print(rapiddns_domain)
         OutPrintInfo("Rapiddns", "Rapiddns查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Fullhunt", "开始调用Fullhunt查找...")
         fullhunt_domain = Fullhunt().main(domain)
         if fullhunt_domain:
@@ -1419,7 +1515,7 @@ class DomainAll:
                     res.append(i)
         # print(fullhunt_domain)
         OutPrintInfo("Fullhunt", "Fullhunt查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Certspotter", "开始调用Certspotter查找...")
         certspotter_domian = Certspotter().main(domain)
         if certspotter_domian:
@@ -1427,7 +1523,7 @@ class DomainAll:
                 if i not in res:
                     res.append(i)
         OutPrintInfo("Certspotter", "Certspotter查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Hackertarget", "开始调用Hackertarget查找...")
         hackertarget_domain = Hackertarget().main(domain)
         if hackertarget_domain:
@@ -1435,7 +1531,7 @@ class DomainAll:
                 if i not in res:
                     res.append(i)
         OutPrintInfo("Hackertarget", "Hackertarget查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Archive", "开始调用Archive查找...")
         archive_domain = Archive().main(domain)
         if archive_domain:
@@ -1443,7 +1539,7 @@ class DomainAll:
                 if i not in res:
                     res.append(i)
         OutPrintInfo("Archive", "Archive查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Dnshistory", "开始调用Dnshistory查找...")
         dnshistor_domain = Dnshistory().main(domain)
         if dnshistor_domain:
@@ -1452,7 +1548,7 @@ class DomainAll:
                     res.append(i)
         OutPrintInfo("Dnshistory", "Dnshistory查找结束")
 
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Binaryedge", "开始调用Binaryedge查找...")
         binaryedge_domain = Binaryedge().main(domain)
         if binaryedge_domain:
@@ -1461,7 +1557,7 @@ class DomainAll:
                     res.append(i)
         OutPrintInfo("Binaryedge", "Binaryedge查找结束")
 
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Whoisxmlapi", "开始调用Whoisxmlapi查找...")
         whoisxmlapi_domain = Whoisxmlapi().main(domain)
         if whoisxmlapi_domain:
@@ -1470,7 +1566,7 @@ class DomainAll:
                     res.append(i)
         OutPrintInfo("Whoisxmlapi", "Whoisxmlapi查找结束")
 
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Google", "开始调用Google查找...")
         google_domain = Google().main(domain)
         if google_domain:
@@ -1478,9 +1574,9 @@ class DomainAll:
                 if i not in res:
                     res.append(i)
         OutPrintInfo("Google", "Google查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Alienvault", "开始调用Alienvault查找...")
-        alienvaul_ip,alienvaul_domain = Alienvault().main(domain)
+        alienvaul_ip, alienvaul_domain = Alienvault().main(domain)
         if alienvaul_domain:
             for i in alienvaul_domain:
                 if i not in res:
@@ -1490,10 +1586,10 @@ class DomainAll:
                 if i not in ip_res:
                     ip_res.append(i)
         OutPrintInfo("Alienvault", "Alienvault查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("Quake", "开始通过Quake搜索域名IP信息...")
-        quake_domain,quake_ip = Quake_Domain().main(domain)
+        quake_domain, quake_ip = Quake_Domain().main(domain)
         if quake_ip:
             for i in quake_ip:
                 if i not in ip_res:
@@ -1503,11 +1599,10 @@ class DomainAll:
                 if i not in res:
                     res.append(i)
         OutPrintInfo("Quake", "Quake搜索域名IP信息结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
-
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("ZoomEye", "开始通过Zoomeye搜索域名IP信息...")
-        zoomeye_ip,zoomeye_domain = ZoomEye().main(domain)
+        zoomeye_ip, zoomeye_domain = ZoomEye().main(domain)
         if zoomeye_ip:
             for i in zoomeye_ip:
                 if i not in ip_res:
@@ -1517,7 +1612,7 @@ class DomainAll:
                 if i not in res:
                     res.append(i)
         OutPrintInfo("ZoomEye", "ZoomEye搜索域名IP信息结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("HunterHow", "开始通过HunterHow搜索域名及IP信息...")
         hunterhow_domain, hunterhow_ip = HunterHow().main(domain)
@@ -1530,8 +1625,7 @@ class DomainAll:
                 if i not in res:
                     res.append(i)
         OutPrintInfo("HunterHow", "HunterHow搜索域名IP信息结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
-
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("DayDayMap", "开始通过DayDayMap搜索域名及IP信息...")
         daydaymap_domain, daydaymap_ip = DayDayMap().main(domain)
@@ -1544,11 +1638,10 @@ class DomainAll:
                 if i not in res:
                     res.append(i)
         OutPrintInfo("DayDayMap", "DayDayMap搜索域名IP信息结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
-
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("Netlas", "开始通过Netlas搜索域名IP信息...")
-        netlas_domain,netlas_ip = Netlas().main(domain)
+        netlas_domain, netlas_ip = Netlas().main(domain)
         if netlas_ip:
             for i in netlas_ip:
                 if i not in ip_res:
@@ -1558,7 +1651,7 @@ class DomainAll:
                 if i not in res:
                     res.append(i)
         OutPrintInfo("Netlas", "Netlas搜索域名IP信息结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("Securitytrails", "开始通过Securitytrails搜索域名IP信息...")
         sec_ip = SecuritytrailsIPScan().main(domain)
@@ -1567,7 +1660,7 @@ class DomainAll:
                 if i not in ip_res:
                     ip_res.append(i)
         OutPrintInfo("Securitytrails", "Securitytrails查找IP结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("Censys", "开始通过Censys搜索域名IP信息...")
         censys_ip = CensysDomainInfo().main(domain)
@@ -1576,7 +1669,7 @@ class DomainAll:
                 if i not in ip_res:
                     ip_res.append(i)
         OutPrintInfo("Censys", "Censys搜索域名IP信息结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("ViewDNS", "开始调用ViewDNS查找...")
         viwedns_domain = ViewDNS().main(domain)
@@ -1586,33 +1679,119 @@ class DomainAll:
                     ip_res.append(i)
 
         OutPrintInfo("ViewDNS", "ViewDNS查找结束")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
-
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
         OutPrintInfo("Working", "查找结果如下")
+
         if res:
-            h = ["http://","https://"]
-            domain_reslist = []
-            for i in res:
-                if i:
-                    OutPrintInfo("SubDomain",i)
-                    domain_reslist.extend([k + i for k in h])
-            OutPrintInfo("Working", "开始检测存活...")
-            with Progress(transient=True) as progress:
-                tasks = progress.add_task("[b cyan]开始检测存活...",total=len(res)*2)
-                with ThreadPoolExecutor(30) as pool:
-                    fs = [pool.submit(self.check_domain,ck_domain)for ck_domain in domain_reslist if ck_domain]
+            domain_reslist = self.http_server(res)
+
+            def mingan_dir():
+                spring_list = ["actuator/env", "actuator", "docs", "nacos", "docs.html", "api/docs", "api-docs",
+                               "swagger/swagger-ui.html", "web/.env", "VwmRIfEYDH.php", "manager", "metrics", "phpinfo",
+                               ".svn/entries", "api/swagger-ui.html", ".env", "WEB-INFO", "mysql_config.ini"]
+                res_http_vuln_check_url_list = [http_domain + "/" + k for http_domain in domain_reslist for k in
+                                                spring_list]
+                OutPrintInfo("Working", "开始检测敏感路径...")
+                tasks = progress.add_task("[b cyan]开始检测敏感路径...", total=len(res_http_vuln_check_url_list))
+                with ThreadPoolExecutor(max_workers=80) as executor:
+                    futures = [executor.submit(self.http_vuln_dir_scan, dir_res.strip()) for dir_res in
+                               res_http_vuln_check_url_list]
+                    for future in as_completed(futures):
+                        future.result()
+                        progress.update(tasks, advance=1)
+                wait(futures)
+                OutPrintInfo("Working", "敏感路径检测结束")
+
+            def cunhuo_url():
+                OutPrintInfo("Working", "开始检测存活...")
+                tasks = progress.add_task("[b cyan]开始检测存活...", total=len(res) * 2)
+                with ThreadPoolExecutor(50) as pool:
+                    fs = [pool.submit(self.check_domain, ck_domain) for ck_domain in domain_reslist if ck_domain]
                     for f in as_completed(fs):
                         f.result()
-                        progress.update(tasks,advance=1)
+                        progress.update(tasks, advance=1)
                 wait(fs)
-            OutPrintInfo("Working", "检测存活结束")
+
+                OutPrintInfo("Working", "检测存活结束")
+            def ip_for_nacos_scan():
+                OutPrintInfo("Working", "开始检测Nacos存活...")
+                tasks = progress.add_task("[b cyan]开始检测Nacos存活...", total=len(res))
+                with ThreadPoolExecutor(max_workers=50) as executor:
+                    futures = [executor.submit(self.nacos_scan, nacos_ip.strip()) for nacos_ip in ip_res]
+                    for future in as_completed(futures):
+                        future.result()
+                        progress.update(tasks, advance=1)
+                wait(futures)
+                OutPrintInfo("Working", "Nacos存活检测结束")
+            def poc_list():
+                from cve.Nginx.Nginx_File_Read import Nginx_File_Read_Scan
+                from cve.Jquery.JqueryDirRead import JqueryDirReadScan
+                from cve.NodeJs.CVE_2017_14849 import Cve_2017_14849
+                from cve.NodeJs.CVE_2021_21315 import Cve_2021_21315
+                from cve.Ruby.CVE_2018_3760 import Cve_2018_3760
+                from cve.Aiohttp.CVE_2024_23334 import Cve_2024_23334
+                from cve.Ruby.CVE_2019_5418 import Cve_2019_5418
+                from cve.Spring.SpringDump import SpringDumpScan
+                from cve.Apache.Log4j_Check import Log4j_Check_Run
+                from cve.Shiro.Shiro_Check import Shiro_Check_Run
+                from cve.IIS.IISPut import IISPutScan
+                from cve.Mini_Httpd.CVE_2018_18778 import Cve_2018_18778
+                from cve.ZOHO.CVE_2023_35854 import Cve_2023_35854
+                from cve.SolarWinds.SolarWinds_File_Read import SolarWinds_File_Read_Scan
+                from cve.PHP.CVE_2024_4577 import Cve_2024_4577
+                poc_list = [
+                    Nginx_File_Read_Scan,
+                    JqueryDirReadScan,
+                    Cve_2017_14849,
+                    Cve_2021_21315,
+                    Cve_2018_3760,
+                    Cve_2019_5418,
+                    SpringDumpScan,
+                    Shiro_Check_Run,
+                    IISPutScan,
+                    Cve_2018_18778,
+                    Cve_2023_35854,
+                    Log4j_Check_Run,
+                    Cve_2024_23334,
+                    SolarWinds_File_Read_Scan,
+                    Cve_2024_4577
+                ]
+
+                tasks = progress.add_task("[b cyan]常归漏洞扫描...", total=len(poc_list) * len(domain_reslist))
+                with ThreadPoolExecutor(50) as pool:
+                    futures = [pool.submit(poc().main, {"url": url.strip(), "ssl": False,
+                                                        "header": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+                                                        "proxy": None, "timeout": 10, "cmd": "whoami",
+                                                        "file": "etc/passwd", "batch_work": True}) for poc in poc_list
+                               for url in domain_reslist]
+                    for future in as_completed(futures):
+                        future.result()
+                        progress.update(tasks, advance=1)
+                wait(futures)
+
+            url_tance_list = [
+                cunhuo_url,
+                mingan_dir,
+                poc_list
+            ]
+            if ip_res:
+                url_tance_list.append(ip_for_nacos_scan)
+            with Progress(transient=True) as progress:
+                tasks = progress.add_task("[b cyan]URL探测总进度...", total=len(url_tance_list))
+                for task in url_tance_list:
+                    try:
+                        task()
+                    except Exception as e:
+                        OutPrintInfo("Err", e)
+                    progress.update(tasks, advance=1)
+            time.sleep(0.5)
 
         if ip_res:
             OutPrintInfo("Working", "以下是查找IP结果:")
             for i in ip_res:
                 OutPrintInfo("IP", i)
-            OutPrintInfo("Working", "[b bright_red]~" * 60)
+            # OutPrintInfo("Working", "[b bright_red]~" * 60)
             OutPrintInfo("Working", "开始通过返回IP进行回调查找域名...")
 
             if len(ip_res) > max_ip:
@@ -1627,34 +1806,29 @@ class DomainAll:
                                 if d not in res:
                                     if d:
                                         res.append(d)
-                                        OutPrintInfo("SubDomain",d)
+                                        OutPrintInfo("SubDomain", d)
             else:
                 res.append("以下是二次IP回调域名")
                 for i in ip_res:
                     if i:
                         sec_domains = Work().main(i)
                         if sec_domains:
-                            # res.append("以下是二次IP回调域名")
                             for d in sec_domains:
                                 if d:
                                     if d not in res:
                                         res.append(d)
-                                        OutPrintInfo("SubDomain",d)
+                                        OutPrintInfo("SubDomain", d)
 
 
         if file_flag:
-            file_name = domain.replace('.','_')
+            file_name = domain.replace('.', '_')
             for ds in res:
                 with open(f"./result/{file_name}_info.txt", "a") as w:
                     w.write(ds + "\n")
             for ips in ip_res:
                 with open(f"./result/{file_name}_info.txt", "a") as w:
                     w.write(ips + "\n")
-            OutPrintInfo("Working", "[b bright_red]~" * 60)
+            # OutPrintInfo("Working", "[b bright_red]~" * 60)
             OutPrintInfo("Working", f"结果输出到result/{file_name}_info.txt")
-        OutPrintInfo("Working", "[b bright_red]~" * 60)
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Working", "回调查找域名执行结束")
-
-
-
-
