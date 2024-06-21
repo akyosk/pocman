@@ -21,7 +21,7 @@ class Cve_2022_27043:
                     OutPrintInfo("Yearning", f"Response:\n{req.text.strip()}")
                 else:
                     OutPrintInfoSuc("Yearning", f"存在任意文件读取漏洞 {url2}")
-                    with open("./result/yearning_2022_27043","a") as w:
+                    with open("./result/yearning_2022_27043.txt","a") as w:
                         w.write(f"{url2}\n")
                 return True
             else:

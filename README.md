@@ -23,7 +23,7 @@ git clone https://github.com/akyosk/pocman.git
 **安装依赖,绝大多数依赖都为后加载，若不安装依赖启动可能不受影响，但调用poc时会出错**
 
 ~~~
-cd pocman & pip install -r requirements.txt
+cd pocman ; pip install -r requirements.txt
 ~~~
 
 

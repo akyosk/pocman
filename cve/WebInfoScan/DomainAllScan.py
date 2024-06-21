@@ -1281,7 +1281,7 @@ class HunterHow:
                     return domain_list, ip_list
 
             OutPrintInfo("HunterHow", "[b yellow]请求HunterHow查询时出错 :(")
-
+            return None,None
         except Exception:
             OutPrintInfo("HunterHow", "[b yellow]请求HunterHow查询时出错 :(")
             return None, None
@@ -1318,6 +1318,7 @@ class DayDayMap:
                                  f"任务执行完成DayDayMap共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名,[b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
                     return domain_list, ip_list
             OutPrintInfo("DayDayMap", "[b yellow]请求DayDayMap查询时出错 :(")
+            return None,None
         except Exception:
             OutPrintInfo("DayDayMap", "[b yellow]请求DayDayMap查询时出错 :(")
             return None, None
