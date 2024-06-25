@@ -21,7 +21,7 @@ class YamlLoadFile():
         for root, dirs, files in os.walk(directory):
             for file in files:
                 # 检查文件是否是YAML文件
-                if file.endswith(".yaml"):
+                if file.endswith(".yaml") or file.endswith(".yml"):
                     # 构建完整的文件路径
                     file_path = os.path.join(root, file)
                     # 读取YAML文件
@@ -72,14 +72,18 @@ class YamlPocScan:
         :return:
         """
         paths = []
-        for k in data['path']:
-            if "{{" in k:
-                for placeholder, value in placeholders.items():
-                    pattern = r"{{\s*" + re.escape(placeholder) + r"\s*}}"
-                    k = re.sub(pattern, value, k)
-                paths.append(k)
+        if data.get("path",None):
+            for k in data['path']:
+                if "{{" in k:
+                    for placeholder, value in placeholders.items():
+                        pattern = r"{{\s*" + re.escape(placeholder) + r"\s*}}"
+                        k = re.sub(pattern, value, k)
+                    paths.append(k)
+            return data['method'], paths
+        elif data.get("raw",None):
+            OutPrintInfo("YAML","RAW格式暂时不支持")
+            return data['raw'], paths
 
-        return data['method'], paths
     def __to_poc_requests(self,poc,data, placeholders):
         """
 
@@ -118,17 +122,19 @@ class YamlPocScan:
         :param response:
         :return:
         """
+        stop_at_first_match = None
         if poc.get("matchers-condition") is not None:
             stop_at_first_match = poc.get("stop-at-first-match",False)
-            return self.__vuls_matchers(poc,poc.get("matchers-condition"),response,stop_at_first_match)
-    def __vuls_matchers(self,poc,module,response_byte,stop_at_first_match):
+        return self.__vuls_matchers(poc,poc.get("matchers-condition"),response,stop_at_first_match)
+    def __vuls_matchers(self,poc,module,response,stop_at_first_match):
         """
         :param poc: 读取的poc yaml文件
         :param module:  yaml文件的请求格式，目前“http”，“requests”
-        :param response_byte: 请求目标返回的response
+        :param response: 请求目标返回的response
         :stop_at_first_match: 判断是否第一次匹配推出
         :return:
         """
+
         if poc.get("matchers") is not None:
             type_list = {}
             for matcher in poc.get("matchers"):
@@ -137,26 +143,52 @@ class YamlPocScan:
                 if type["type"] == "regex":
                     regexs = type["regex"]
                     for regex in regexs:
-                        type_list["regex"] = bool(re.search(regex, response_byte.text))
-                        if stop_at_first_match:
+                        type_list["regex"] = bool(re.search(regex, response.text))
+                        if stop_at_first_match and type_list["regex"]:
                             return True
                 if type["type"] == "status":
                     requests_status = type["status"]
                     for status in requests_status:
-                        type_list["status"] = bool(status == response_byte.status_code)
-                        if stop_at_first_match:
+                        type_list["status"] = bool(status == response.status_code)
+                        if stop_at_first_match and type_list["status"]:
                             return True
                 if type["type"] == "word":
-                    words = type["word"]
-                    for word in words:
-                        type_list["word"] = bool(word in response_byte.text)
-                        if stop_at_first_match:
-                            return True
+                    words = type["words"]
+                    part_type = type.get("part",None)
+                    condition_type = type.get("condition",None)
+                    if condition_type == "and" if condition_type else False:
+                        if part_type == "header" if part_type else False:
+                            for word in words:
+                                if word in str(response.headers):
+                                    type_list["words"] = True
+                                    if stop_at_first_match:
+                                        return True
+                        for word in words:
+                            type_list["words"] = bool(word in response.text)
+                            if not type_list["words"]:
+                                return False
+                            if stop_at_first_match and type_list["words"]:
+                                return True
+
+                    elif condition_type == "or" if condition_type else False:
+                        if part_type == "header" if part_type else False:
+                            for word in words:
+                                if word in str(response.headers):
+                                    type_list["words"] = True
+                                    if stop_at_first_match:
+                                        return True
+                        for word in words:
+                            type_list["words"] = bool(word in response.text)
+                            if type_list["words"]:
+                                return True
+                            if stop_at_first_match and type_list["words"]:
+                                return True
+
             if module == "and":
-                if all(type_list):
+                if all(value is True for value in type_list.values()):
                     return True
             elif module == "or":
-                if any(type_list):
+                if any(value is True for value in type_list.values()):
                     return True
     def __load_yaml_print_info(self,poc,url):
         """
@@ -182,12 +214,13 @@ class YamlPocScan:
         http_module = poc.get("http",[])
         if http_module is not None:
             __work_module = "http"
-        requests_module = poc.get("requests",[])
-        if http_module is not None:
+        else:
             __work_module = "requests"
-        if not requests_module and not http_module:
+        requests_module = poc.get(__work_module,[])
+
+        if not requests_module:
             return
-        for http_req_data in poc.get(__work_module):
+        for http_req_data in requests_module:
             responses = self.__to_poc_requests(poc,http_req_data,placeholders)
             if responses:
                 for response in responses:
@@ -195,10 +228,12 @@ class YamlPocScan:
             else:
                 OutPrintInfo("YAML", "目标请求失败")
                 return
+
         if vuln_flag:
             self.__load_yaml_print_info(poc,responses[-1].url)
         else:
             OutPrintInfo("YAML", "目标不存在该漏洞")
+        OutPrintInfo("YAML", "脚本调用结束")
 
     def __url_check(self,placeholders):
         for k in placeholders:
@@ -207,7 +242,6 @@ class YamlPocScan:
         return placeholders
     def main(self,filename,placeholders):
         """
-
         :param filename: yaml文件名称
         :param placeholders: yaml调用时传入的参数
         :return:

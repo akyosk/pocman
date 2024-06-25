@@ -261,24 +261,36 @@ class SearchOpts:# 用于search检测
         return searchList, yamlList
 
     def find_double_curly_braces(self,yaml_file):
+        import yaml
         # 正则表达式匹配双花括号中的内容
         pattern = r'\{\{([^}]*)\}\}'
-        matches = []
         with open(yaml_file, 'r') as file:
-            matches.extend(re.findall(pattern, file.read()))
-        return matches
+            file_content = file.read()
+
+        matches = re.findall(pattern, file_content)
+
+        yaml_data = yaml.safe_load(file_content)
+
+        return matches, yaml_data
     # 读取YAML文件
     def yaml_main(self,yamlfile):
-        matches = self.find_double_curly_braces(yamlfile)
+        matches_dict = {}
+        matches,poc_data = self.find_double_curly_braces(yamlfile)
         if not matches:
             return {}
-        matches_dict = {}
         for k in matches:
-            if k.lower() == "hostname" or k.lower() == "baseurl" or "url" in k.lower():
+            if k.lower() == "baseurl" or "url" in k.lower():
                 matches_dict[k] = "https://www.google.com"
-            elif k.lower() == "username":
-                matches_dict[k] = "admin"
+            elif k.lower() == "hostname":
+                matches_dict[k] = "127.0.0.1"
             else:
-                matches_dict[k] = "123456"
+                matches_dict[k] = k
+        if poc_data.get("variables",False):
+            poc_data_params = poc_data.get("variables")
+            poc_params_key = next(iter(poc_data_params))
+            value = poc_data_params[poc_params_key]
+            if poc_params_key in matches:
+                matches_dict[poc_params_key] = value
+
 
         return matches_dict
