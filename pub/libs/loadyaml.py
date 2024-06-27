@@ -211,7 +211,7 @@ class YamlPocScan:
         responses = None
         vuln_flag = False
         __work_module = None
-        http_module = poc.get("http",[])
+        http_module = poc.get("http",None)
         if http_module is not None:
             __work_module = "http"
         else:
@@ -220,6 +220,7 @@ class YamlPocScan:
 
         if not requests_module:
             return
+
         for http_req_data in requests_module:
             responses = self.__to_poc_requests(poc,http_req_data,placeholders)
             if responses:

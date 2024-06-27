@@ -11,9 +11,11 @@ def Opts(flag):
     # opts = Prompt.ask(
     #     f"[[bold bright_blue]{Time()}[/bold bright_blue]]-([bold bright_red]POCMAN[/bold bright_red])-[b blue]SEARCH[/b blue]")
     opts = input(Fore.BLUE+ Style.BRIGHT + f"[{Time()}]-(POCMAN)-{flag}# " + Fore.RESET + Style.RESET_ALL)
-    history_file = "history.log"
+    history_file = "log/history.log"
     with open(history_file, 'a') as f:
-        f.write(opts + '\n')
+        f.write("[RunTime] | " + Time() + " | --->>> " + opts + '\n')
+        if opts == "exit":
+            f.write("| END |\n")
     return opts
 def YamlPocErr(data):
     if rich_flag:

@@ -97,9 +97,13 @@ class InputCheck:
             from rich.progress import Progress
             OutPrintInfo("Batch", "任务加载完成 [b bright_cyan];)")
             try:
-                threads = int(Prompt.ask("[[b red]Batch[/b red]]\t[b yellow]输入运行线程数"))
+                input_threads = Prompt.ask("[[b red]Batch[/b red]]\t[b yellow]输入运行线程数",choices=["10","50","100","200","exit"],default="输入默认选项之一")
+                if input_threads == "exit":
+                    return
+                else:
+                    threads = int(input_threads)
             except Exception:
-                OutPrintInfoErr(f"{threads} :(")
+                OutPrintInfoErr(f"{input_threads} :(")
                 return
             try:
                 if parsesss["proxy"]:
