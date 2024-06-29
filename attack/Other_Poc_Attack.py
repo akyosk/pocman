@@ -104,6 +104,8 @@ class Other_Poc_Attack_Run():
     def __cms_check(self,target):
         OutPrintInfoR("ATTACK", "开始网站内容CMS特征识别...")
         req = self.__error_check(target)
+
+
         if req:
             _cms_poc_list = []
             for k in modules:
@@ -124,8 +126,23 @@ class Other_Poc_Attack_Run():
                         OutPrintInfo("ATTACK", f"[b bright_red]{i['name']}")
 
                 tasks = self.__progress.add_task("[b cyan]CMS特征对应漏洞扫描...", total=len(_cms_poc_list))
+
+                def lazy_import(module_name):
+                    from importlib import import_module
+                    return lambda: import_module(module_name)
                 with ThreadPoolExecutor(int(target["threads"])) as pool:
-                    futures = [pool.submit(poc['poc']().main, poc['params']) for poc in _cms_poc_list]
+                    futures = []
+                    for reslist_poc in _cms_poc_list:
+                        class_name = ".".join(reslist_poc["poc"].split(".")[0:-1])
+                        poc_module = lazy_import(class_name)()
+                        poc_class = getattr(poc_module, reslist_poc["poc"].split(".")[-1])
+                        poc_instance = poc_class()
+                        # 假设 poc_instance.main() 应该直接执行
+                        poc_instance.main()
+                        # 将 poc_instance.main() 作为任务提交到线程池
+                        future = pool.submit(poc_instance.main, reslist_poc['params'])
+                        futures.append(future)
+                    # futures = [pool.submit(poc['poc']().main, poc['params']) for poc in _cms_poc_list]
                     for future in as_completed(futures):
                         future.result()
                         self.__progress.update(tasks, advance=1)

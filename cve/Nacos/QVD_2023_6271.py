@@ -278,10 +278,12 @@ class Qvd_2023_6271:
 
         if not self.batch:
             self.poc7(url)
-        self.poc1(url)
+        if self.poc1(url):
+            return
         self.poc2(url)
         self.poc6(url)
-        self.poc3(url)
+        if self.poc3(url):
+            return
         self.poc4(url)
         self.poc5(url)
         self.poc8(url)

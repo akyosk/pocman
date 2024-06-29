@@ -73,6 +73,9 @@ api_keys:
   hunter_how_key: ""
   # DayDayMap
   daydaymap_key: ""
+  # https://getodin.com/
+  gettodin_key: ""
+
 # securitytrails.com接口网站的密钥 每个50次，免费注册,可注册多个，当检测无使用次数时自动遍历替换
 securitytrails_keys:
   api_list:

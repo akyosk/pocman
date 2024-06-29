@@ -6,6 +6,7 @@
 /user/login
 /.svn/entries
 /app/admin
+/xxl-job-admin
 /u.php
 /env
 /.env

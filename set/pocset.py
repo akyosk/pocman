@@ -341,6 +341,7 @@ modules = [
     {"name": "EyouCMS", "description": "EyouCMS 通过短文件名读取[b bright_red]SQL[/b bright_red]文件漏洞", "params": {"url": url,"ssl": ssl,"header":ua,"proxy":proxy,"timeout":timeout,"batch_work":False,"fofa":'app="eyoucms"'},"attack":"eyoucms",'poc': "cve.EyouCMS.EyouCMS_SQLFILEREAD.EyouCMS_SQLFILEREAD_Scan"},
     {"name": "SuperShell", "description": "SuperShell 用户默认[b bright_red]密钥[/b bright_red]漏洞", "params": {"url": url,"ssl": ssl,"header":ua,"proxy":proxy,"timeout":timeout,"batch_work":False,"fofa":'app="SuperShell"'},"attack":"supershell",'poc': "cve.SuperShell.SuperShellMrPass.SuperShellMrPass_Scan"},
     {"name": "SuperShell", "description": "SuperShell [b bright_red]JWT[/b bright_red] 默认密钥漏洞", "params": {"url": url,"ssl": ssl,"header":ua,"proxy":proxy,"timeout":timeout,"batch_work":False,"fofa":'app="SuperShell"'},"attack":"supershell",'poc': "cve.SuperShell.SuperShellJwt.SuperShellJwt_Scan"},
+    {"name": "Crypto", "description": "Crypto 通过KEY进行[b bright_red]钱包[/b bright_red]查询", "params": {"apikey":"xxxxxx"},'poc': "cve.Crypto.CryptoWallt.CryptoWalltScan"},
 
 
 ]

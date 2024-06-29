@@ -1,5 +1,4 @@
 import time
-
 from bs4 import BeautifulSoup
 import re
 import feedparser
@@ -11,7 +10,7 @@ import requests
 from urllib.parse import quote
 from urllib.parse import urlparse
 from pub.com.outprint import OutPrintInfo
-# from set.config import api_list,censys_api,shodan_api,virustotal_api,dnsdump_csrftoken,fofa_email,fofa_key,yt_key,viewdns_key,fullhunt_api,zoomeye_key,quake_key,binaryedge_key,whoisxmlapi_key
+from datetime import datetime
 import urllib3
 from rich.progress import Progress
 
@@ -923,25 +922,28 @@ class Certspotter:
 
 class Hackertarget:
     def main(self, domain):
-        # hackertarget -> CSV -> domain, ip
-        url = "https://api.hackertarget.com/hostsearch/?q={domain}".format(domain=domain)
+        i = f"https://api.hackertarget.com/hostsearch/?q=baidu.com"
         try:
-            resp = requests.get(url, timeout=5).text
-
-            result = []
-            for item in resp.split('\n'):
-                line_spl = item.split(',')
-                subdomain = line_spl[0]
-                if subdomain and subdomain not in result:
-                    result.append(subdomain)
-
-            OutPrintInfo("Hackertarget",
-                         f"任务执行完成Hackertarget共找到 [b bright_red]{str(len(result))}[/b bright_red] 个子域名")
-            return result
-
+            req = requests.get(i)
+            if req.status_code == 200:
+                res = req.text.split("\n")
+                domain_list = []
+                ip_list = []
+                for i in res:
+                    if i.split(',')[0] and i.split(',')[0] not in domain_list:
+                        domain_list.append(i.split(',')[0])
+                    if i.split(',')[-1] and i.split(',')[-1] not in ip_list:
+                        ip_list.append(i.split(',')[-1])
+                OutPrintInfo("Hackertarget",
+                             f"任务执行完成Hackertarget共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名,{str(len(ip_list))}[/b bright_red] 个IP")
+                return ip_list, domain_list
+            else:
+                OutPrintInfo("Hackertarget", "[b yellow]请求Hackertarget查询时出错 :(")
+                return None, None
         except Exception:
             OutPrintInfo("Hackertarget", "[b yellow]请求Hackertarget查询时出错 :(")
-            return None
+            return None, None
+
 
 
 class Archive:
@@ -1323,7 +1325,40 @@ class DayDayMap:
             OutPrintInfo("DayDayMap", "[b yellow]请求DayDayMap查询时出错 :(")
             return None, None
 
+class C99NL:
+    def main(self,search_domain):
+        ip_list = []
+        domain_list = []
+        # 获取当前日期时间
+        current_datetime = datetime.now()
 
+        # 格式化日期时间为指定格式
+        formatted_date = current_datetime.strftime('%Y-%m-%d')
+        i = f"https://subdomainfinder.c99.nl/scans/{formatted_date}/{search_domain}"
+        try:
+            req = requests.get(i)
+            if req.status_code == 200:
+                reg = re.compile("<a class='link sd' target='_blank' rel='noreferrer' href='//(.*?)'>")
+                reg_ip = re.compile("<a class='link ip' target='_blank' href='/geoip/(.*?)'>")
+                matches = re.findall(reg, req.text)
+                matches_ip = re.findall(reg_ip, req.text)
+                for domain in matches:
+                    if domain not in domain_list:
+                        domain_list.append(domain.strip())
+
+                for ip in matches_ip:
+                    if ip not in ip_list:
+                        ip_list.append(ip.strip())
+
+                OutPrintInfo("C99NL",
+                             f"任务执行完成C99NL共找到 [b bright_red]{str(len(domain_list))}[/b bright_red] 个子域名,[b bright_red]{str(len(ip_list))}[/b bright_red] 个IP")
+                return domain_list, ip_list
+            else:
+                OutPrintInfo("C99NL", "[b yellow]请求C99NL查询时出错 :(")
+                return None, None
+        except Exception:
+            OutPrintInfo("C99NL", "[b yellow]请求C99NL查询时出错 :(")
+            return None, None
 class DomainAll:
     def nacos_scan(self, ip):
         try:
@@ -1525,13 +1560,19 @@ class DomainAll:
                     res.append(i)
         OutPrintInfo("Certspotter", "Certspotter查找结束")
         # OutPrintInfo("Working", "[b bright_red]~" * 60)
+
         OutPrintInfo("Hackertarget", "开始调用Hackertarget查找...")
-        hackertarget_domain = Hackertarget().main(domain)
+        hackertarget_ip,hackertarget_domain = Hackertarget().main(domain)
         if hackertarget_domain:
             for i in hackertarget_domain:
                 if i not in res:
                     res.append(i)
+        if hackertarget_ip:
+            for i in hackertarget_ip:
+                if i not in ip_res:
+                    ip_res.append(i)
         OutPrintInfo("Hackertarget", "Hackertarget查找结束")
+
         # OutPrintInfo("Working", "[b bright_red]~" * 60)
         OutPrintInfo("Archive", "开始调用Archive查找...")
         archive_domain = Archive().main(domain)
@@ -1641,6 +1682,21 @@ class DomainAll:
         OutPrintInfo("DayDayMap", "DayDayMap搜索域名IP信息结束")
         # OutPrintInfo("Working", "[b bright_red]~" * 60)
 
+
+        OutPrintInfo("C99NL", "开始通过C99NL搜索域名及IP信息...")
+        c99nl_domain, c99nl_ip = C99NL().main(domain)
+        if c99nl_ip:
+            for i in c99nl_ip:
+                if i not in ip_res:
+                    ip_res.append(i)
+        if c99nl_domain:
+            for i in c99nl_domain:
+                if i not in res:
+                    res.append(i)
+        OutPrintInfo("C99NL", "C99NL搜索域名IP信息结束")
+        # OutPrintInfo("Working", "[b bright_red]~" * 60)
+
+
         OutPrintInfo("Netlas", "开始通过Netlas搜索域名IP信息...")
         netlas_domain, netlas_ip = Netlas().main(domain)
         if netlas_ip:
@@ -1690,7 +1746,7 @@ class DomainAll:
             def mingan_dir():
                 spring_list = ["actuator/env", "actuator", "docs", "nacos", "docs.html", "api/docs", "api-docs",
                                "swagger/swagger-ui.html", "web/.env", "VwmRIfEYDH.php", "manager", "metrics", "phpinfo",
-                               ".svn/entries", "api/swagger-ui.html", ".env", "WEB-INFO", "mysql_config.ini"]
+                               ".svn/entries", "api/swagger-ui.html", ".env", "WEB-INFO", "mysql_config.ini","xxl-job-admin"]
                 res_http_vuln_check_url_list = [http_domain + "/" + k for http_domain in domain_reslist for k in
                                                 spring_list]
                 OutPrintInfo("Working", "开始检测敏感路径...")

